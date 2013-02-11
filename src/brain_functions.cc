@@ -25,8 +25,9 @@ opencl_brain_functions::opencl_brain_functions(int w,int I,int O):w(w),I(I),O(O)
     cl_uint ret_num_devices;
     cl_uint ret_num_platforms;
     clGetPlatformIDs(1, &platform, &ret_num_platforms);
-    clGetDeviceIDs(platform, CL_DEVICE_TYPE_GPU, 1, &device, &ret_num_devices);
-    ctx = clCreateContext(NULL, 1, &device, NULL, NULL, &err);
+    clGetDeviceIDs(platform, CL_DEVICE_TYPE_DEFAULT, 1, &device, &ret_num_devices);
+    assert(ret_num_devices > 0);
+    ctx = clCreateContext(NULL, ret_num_devices, &device, NULL, NULL, &err);
     print_opencl_error(err);
     assert(err == CL_SUCCESS);
     queue = clCreateCommandQueue(ctx, device, 0, &err);

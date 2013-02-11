@@ -11,7 +11,5 @@ timespec totimespec(double s){
 
 double now(){
 	clock_gettime(CLOCK_REALTIME, &ts);
-	timespec sleeptime = totimespec(0.01);
-	//nanosleep(&sleeptime,&ts);
 	return ts.tv_sec + (ts.tv_nsec)*1e-9;
 }

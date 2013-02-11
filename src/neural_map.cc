@@ -10,10 +10,10 @@ ostream &operator<<(ostream& os, position p){
 neural_map::neural_map(size_t ni, size_t no):ni(ni),no(no),N(),S(&N)
 {
     bf = new opencl_brain_functions(NBSIZE,ni,no);
-    for(int i = 0; i < (ni+no+1)/NBSIZE + 1; ++i){
+    for(size_t i = 0; i < (ni+no+1)/NBSIZE + 1; ++i){
         //N.addBlock();
         N.at(i);
-        for(int j = 0; j < (ni+no+1)/NBSIZE + 1; ++j){
+        for(size_t j = 0; j < (ni+no+1)/NBSIZE + 1; ++j){
             S.at(position(i,j));
             //S.addBlock(new SynapsBlock(N.at(i),i,j),position(i,j));
 /*
@@ -88,7 +88,12 @@ seconds neural_map::update_synaps_map(seconds limit)
 }
 
 
-/////////////// SYNAPSBLOCK \\\\\\\\\\\\\\\\\
+/*
+
+SYNAPSBLOCK
+
+*/
+
 
 SynapsBlock::SynapsBlock(NeuronBlock *N,size_t i,size_t j):N(N),x(i),y(j),state(GPU)
 {
@@ -236,7 +241,12 @@ void SynapsBlock::kill(long s, long vertical, long l){
     bf->opencl_synaps_die(SBAL,SP1,s,vertical,l);
 }
 
-//////////// NEURONBLOCK \\\\\\\\\\\\
+/*
+
+NEURONBLOCK
+
+*/
+
 
 NeuronBlock::NeuronBlock():state(GPU)
 {
@@ -271,7 +281,12 @@ float NeuronBlock::setState(statetype s){
     cerr << "\t\tImplement hdd- and sdd-writing" << endl;
     return cost;
 }
-/////////// SYNAPSES \\\\\\\\\\\\
+/*
+
+SYNAPSES
+
+*/
+
 
 void Synapses::update()
 {
@@ -295,7 +310,12 @@ position Synapses::maxbid()
     return min->first;
 }
 
-/////////// NEURONS \\\\\\\\\\\\
+/*
+
+NEURONS
+
+*/
+
 
 void Neurons::addBlock(){
         N[N.size()] = new NeuronBlock();
@@ -344,7 +364,11 @@ void Neurons::set(size_t start,int l,float *A)
 
 
 
-//////////////HELPERS\\\\\\\\\\\\\
+/*
+
+HELPERS
+
+*/
 
 
 

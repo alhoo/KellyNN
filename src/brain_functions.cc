@@ -252,8 +252,8 @@ void opencl_brain_functions::opencl_find_winning_neurons(Col NW,Mat SW){
 void opencl_brain_functions::opencl_set(Col NW,int n,cl_float v){
     cout << "\t\t\topencl_set()" << endl;
     if(DEBUG) {int quit = 0; cin >> quit; assert(quit);};
-    err = err = clEnqueueWriteBuffer(queue, NW, CL_TRUE, 0,
-        (1)* sizeof(v), &v, 0, NULL, &event);
+    err = clEnqueueWriteBuffer(queue, NW, CL_TRUE, 0,
+        (n)* sizeof(v), &v, 0, NULL, &event);
     assert(err == CL_SUCCESS);
 }
 void opencl_brain_functions::opencl_find_winning_synapses(Mat SBET0,Mat SBET1,Col NBET0,Col NBET1,Col NW,Mat SW)

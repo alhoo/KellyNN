@@ -65,10 +65,10 @@ class NeuronBlock{
         statetype state;
 };
 class SynapsBlock{
-    statetype state;
     Mat SINFO,SP0,SP1,STMP,SP00,SP01,SP10,SP11,SP,SBAL,SBET0,SBET1; //float16
-    size_t x,y;
     NeuronBlock *N;
+    size_t x,y;
+    statetype state;
     size_t size();
     void refresh();
     float setState(uint8_t s);
@@ -115,8 +115,8 @@ class    Synapses{
 
 class neural_map{
     size_t ni, no;
-    Synapses S;
     Neurons  N;
+    Synapses S;
     void get_neural_states(size_t,size_t,float *);
     void set_neural_states(size_t,size_t,float *);
     position get_highest_bid();

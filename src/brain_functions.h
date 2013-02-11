@@ -10,6 +10,10 @@
 #define NEURONINITBAL 2000
 #define SYNAPSINITBAL 1500
 
+#ifndef DEBUG
+#define DEBUG=0
+#endif
+
 
 using namespace std;
 

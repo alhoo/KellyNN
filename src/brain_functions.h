@@ -11,7 +11,7 @@
 #define SYNAPSINITBAL 1500
 
 #ifndef DEBUG
-#define DEBUG=0
+#define DEBUG (0)
 #endif
 
 

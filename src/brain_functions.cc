@@ -42,7 +42,7 @@ cl_mem opencl_brain_functions::gpu_malloc(cl_mem M,size_t s,float a){
     if(DEBUG) {int quit = 0; cin >> quit; assert(quit);};
     M = clCreateBuffer(ctx, CL_MEM_READ_WRITE | CL_MEM_ALLOC_HOST_PTR, s * sizeof(cl_float), NULL, &err);
     assert(err == CL_SUCCESS);
-    for(int i = 0; i < s; ++i) tmp[i] = a;
+    for(size_t i = 0; i < s; ++i) tmp[i] = a;
     opencl_setv(M,tmp,0,s);
     mem_allocated += s * sizeof(cl_float);
     return M;
@@ -75,9 +75,9 @@ void    opencl_brain_functions::opencl_pay_neuron(Col BAL,Col NW,Mat SW,int i,fl
     opencl_getv(BAL,tmp,i,i+1);
     tmp[0] += v;
     opencl_setv(BAL,tmp,i,i+1);
-//    for(int j = 0; j < w; ++j)
-//        tmp[j] = (v>0)*2.0 - 1.0;
-//    opencl_setv(SW,tmp,i*w,(i + 1)*w);
+    for(int j = 0; j < w; ++j)
+        tmp[j] = (v>0)*2.0 - 1.0;
+    opencl_setv(SW,tmp,i*w,(i + 1)*w);
     tmp[0] = (v>0)*2.0 - 1.0;
     opencl_setv(NW,tmp,i,i+1);
 }

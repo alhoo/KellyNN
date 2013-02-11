@@ -1,0 +1,6 @@
+[submodule "robotio"]
+	path = robotio
+	url = lasse.dy.fi:Projects/robotio.git
+[submodule "emotions"]
+	path = emotions
+	url = lasse.dy.fi:Projects/emotions.git

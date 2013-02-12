@@ -93,8 +93,8 @@ class    Neurons{
     nmap N;
     public:
         Neurons();
-        void addBlock();
         NeuronBlock *at(size_t i);
+        void addBlock();
         void printN();
         void get(size_t start,int l,float *A);
         void set(size_t start,int l,float *A);
@@ -105,9 +105,9 @@ class    Synapses{
     smap SB;
     Neurons  *N;
     public:
+        Synapses(Neurons *N);
         SynapsBlock *at(position);
         void addBlock(SynapsBlock *S,position p);
-        Synapses(Neurons *N);
         void update();
         position maxbid();
 };

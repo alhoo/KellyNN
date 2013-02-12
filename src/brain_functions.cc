@@ -368,7 +368,7 @@ void humanprint(unsigned long s){
         i++;
     }
     if(VERBOSE>1) cout << s << mult[i];
-    if(i) cout << "\t\t\tB";
+    if(i && VERBOSE>1) cout << "\t\t\tB";
 }
 
 void opencl_brain_functions::info(){
@@ -430,14 +430,16 @@ void opencl_brain_functions::init_kernels(string filename){
     if(VERBOSE>1) cout << "\t\t\tloading kernels";
     if(DEBUG) {int quit = 0; cin >> quit; assert(quit);};
     ifstream inf(filename.c_str());
+    assert(inf.good());
     int i = 0;
     while(inf.good()){
         string sourcefile;
         inf >> sourcefile;
-    if(sourcefile.length() < 2) break;
+        if(sourcefile.length() < 2) break;
         init_kernel(i, sourcefile);
         i++;
     }
+    assert(i > 5);
     if(VERBOSE>1) cout << "\t\t\tok" << endl;
 }
 

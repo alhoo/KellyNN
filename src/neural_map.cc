@@ -55,14 +55,14 @@ void neural_map::O(float * O)
 
 void neural_map::U(seconds t)
 {
-    cout << "neural_map::U(" << t << ")" << endl;
+    if(VERBOSE) cout << "neural_map::U(" << t << ")" << endl;
     double a = now() + t;
-    cout << "\tTime remaining: " << a - now() << "s" << endl;
+    if(VERBOSE) cout << "\tTime remaining: " << a - now() << "s" << endl;
     while(a - now() > 0){
         update_synaps_map(a - now());
-        cout << "\tTime remaining: " << a - now() << "s" << endl;
+        if(VERBOSE) cout << "\tTime remaining: " << a - now() << "s" << endl;
     }
-    cout << "neural_map::U(" << t << ")::done" << endl;
+    if(VERBOSE) cout << "neural_map::U(" << t << ")::done" << endl;
 }
 void neural_map::get_neural_states(size_t start, size_t l, float *A)
 {
@@ -110,7 +110,7 @@ SynapsBlock::SynapsBlock(NeuronBlock *N,size_t i,size_t j):N(N),x(i),y(j),state(
     SBET0 = bf->gpu_malloc(SBET0,SBSIZE,0);
     SBET1 = bf->gpu_malloc(SBET1,SBSIZE,0);
     SW = bf->gpu_malloc(SW,SBSIZE,0);
-    cout << "\t\tSB(" << position(x,y) << ") created, state = " << state << endl;
+    if(VERBOSE) cout << "\t\tSB(" << position(x,y) << ") created, state = " << state << endl;
 }
 /*
     SynapsBlock::SynapsBlock():state(GPU)
@@ -128,7 +128,7 @@ SynapsBlock::SynapsBlock(NeuronBlock *N,size_t i,size_t j):N(N),x(i),y(j),state(
     SBET0 = bf->gpu_malloc(SBET0,SBSIZE,0);
     SBET1 = bf->gpu_malloc(SBET1,SBSIZE,0);
     SW = bf->gpu_malloc(SW,SBSIZE,0);
-    cout << "\t\tSB(" << position(x,y) << ") created, state = " << state << endl;
+    if(VERBOSE) cout << "\t\tSB(" << position(x,y) << ") created, state = " << state << endl;
 }
 */
 SynapsBlock::~SynapsBlock(){
@@ -146,15 +146,15 @@ SynapsBlock::~SynapsBlock(){
     bf->gpu_free(SBET1);
     bf->gpu_free(SW);
     state = 0;
-    cout << "\t\tSB(" << position(x,y) << ") removed, state = " << state << endl;
+    if(VERBOSE) cout << "\t\tSB(" << position(x,y) << ") removed, state = " << state << endl;
 }
 seconds SynapsBlock::update()
 {
 //    seconds d = timeOfCost(cost());
-//    cout << "\t\tSB[" << position(x,y) << "]::U.inState("<<state<<") = " << d << endl;
+//    if(VERBOSE) cout << "\t\tSB[" << position(x,y) << "]::U.inState("<<state<<") = " << d << endl;
 
     if(state != GPU)
-	cerr << "\t\timplement moving to GPU" << endl;
+	if(DEBUG>1) cerr << "\t\timplement moving to GPU" << endl;
 
     bf->opencl_synaps_refresh(SP0,SP01,SP00,N->P);
     bf->opencl_synaps_refresh(SP1,SP11,SP10,N->P);
@@ -202,14 +202,14 @@ size_t SynapsBlock::size(){
 neur SynapsBlock::cost()
 {
     neur ret = stateStayCosts[state]*size()*10e-15 + costOfTime((size()/stateBandwidth[state] + size()/stateChangeSpeed[4*state + GPU])*10e-9);
-    cout << "\t\tSB[" << position(x,y) << "]::c.instate("<<state<<")::cost = " << ret << "n€" << endl;
-    cout << "\t\tSB[" << position(x,y) << "]::c.instate("<<state<<")::timeOfCost = " << timeOfCost(ret) << "s" << endl;
+    if(VERBOSE) cout << "\t\tSB[" << position(x,y) << "]::c.instate("<<state<<")::cost = " << ret << "n€" << endl;
+    if(VERBOSE) cout << "\t\tSB[" << position(x,y) << "]::c.instate("<<state<<")::timeOfCost = " << timeOfCost(ret) << "s" << endl;
     return ret;
 }
 
 Synapses::Synapses(Neurons *N):N(N)
 {
-    cout << "\t\tS()" << endl;
+    if(VERBOSE) cout << "\t\tS()" << endl;
 }
 void Synapses::addBlock(SynapsBlock *S,position p){
     SB[p] = S;
@@ -218,7 +218,7 @@ NeuronBlock *Neurons::at(size_t p)
 {
 	if(N.find(p) == N.end())
     {
-        cerr << "\t\tadding a new neuron block ( N[" << p << "] )" << endl;
+        if(VERBOSE) cerr << "\t\tadding a new neuron block ( N[" << p << "] )" << endl;
         N.insert(pair<size_t,NeuronBlock*>(p,new NeuronBlock()));
     }
 	return N.at(p);
@@ -227,14 +227,14 @@ SynapsBlock *Synapses::at(position p)
 {
 	if(SB.find(p) == SB.end())
     {
-        cerr << "\t\tadding a new synaps block ( SB[" << p << "] )" << endl;
+        if(VERBOSE) cerr << "\t\tadding a new synaps block ( SB[" << p << "] )" << endl;
         SB.insert(pair<position,SynapsBlock*>(p,new SynapsBlock(N->at(p.first),p.first,p.second)));
     }
 	return SB.at(p);
 }
 seconds SynapsBlock::expected()
 {
-//    cout << "\t\tSB::e() = ?? What is the expected win of a block?" << endl;    
+//    if(VERBOSE) cout << "\t\tSB::e() = ?? What is the expected win of a block?" << endl;    
     return 10 - cost();
 }
 void SynapsBlock::kill(long s, long vertical, long l){
@@ -258,7 +258,7 @@ NeuronBlock::NeuronBlock():state(GPU)
     BET1 = bf->gpu_malloc(BET1,NBSIZE,0);
     W = bf->gpu_malloc(W,NBSIZE,0);
     L = bf->gpu_malloc(L,NBSIZE,0);
-    cout << "\t\tNB(x) created, state = " << state << endl;
+    if(VERBOSE) cout << "\t\tNB(x) created, state = " << state << endl;
 }
 NeuronBlock::~NeuronBlock()
 {
@@ -270,15 +270,15 @@ NeuronBlock::~NeuronBlock()
     bf->gpu_free(BET1);
     bf->gpu_free(W);
     bf->gpu_free(L);
-    cout << "\t\tNB(x) removed, state = " << state << endl;
+    if(VERBOSE) cout << "\t\tNB(x) removed, state = " << state << endl;
 }
 size_t NeuronBlock::size(){
-    return NBSIZE;
+    return NBSIZE*7*sizeof(float);
 }
 
 float NeuronBlock::setState(statetype s){
     float cost = size()/stateChangeSpeed[4*state + s];
-    cerr << "\t\tImplement hdd- and sdd-writing" << endl;
+    if(DEBUG>1)cerr << "\t\timplement hdd- and sdd-writing" << endl;
     return cost;
 }
 /*
@@ -291,22 +291,22 @@ SYNAPSES
 void Synapses::update()
 {
 
-    cout << "\tS::U()" << endl;
-    cout << "\tdone" << endl;
+    if(VERBOSE) cout << "\tS::U()" << endl;
+    if(VERBOSE) cout << "\tdone" << endl;
 
 }
 
 position Synapses::maxbid()
 {
 //    if(VERBOSE){int val = 1; cin >> val; assert(val > 0);}
-    cout << "\tS::maxbid() should get the SB that predicts to be most useful for the brain (maxbid() = argmax(P - C))" << endl;
+    if(VERBOSE) cout << "\tS::maxbid() should get the SB that predicts to be most useful for the brain (maxbid() = argmax(P - C))" << endl;
     smap::iterator min = SB.begin(); 
     float minexp = -10e10;
     for(smap::iterator it = SB.begin(); it != SB.end(); ++it){
         float nowexp = it->second->expected();
         if(nowexp > minexp) { minexp = nowexp; min = it; }
     }
-    cout << "\tdone" << endl;
+    if(VERBOSE) cout << "\tdone" << endl;
     return min->first;
 }
 
@@ -322,7 +322,7 @@ void Neurons::addBlock(){
 }
     Neurons::Neurons()
 {
-    cout << "\tNeurons()" << endl;
+    if(VERBOSE) cout << "\tNeurons()" << endl;
 }
 
 int min(int a,int b){ if(a < b) return a; return b; }
@@ -331,13 +331,13 @@ void Neurons::get(size_t start,int l,float *A)
 {
     int i = start/NBSIZE;
     int j = start - NBSIZE*i;
-//    cout << "\tNeurons[" << i << "]::P.get( " << j <<","<< min(j+l,NBSIZE) << ","<<(void *) A<<" )" << endl;
+//    if(VERBOSE) cout << "\tNeurons[" << i << "]::P.get( " << j <<","<< min(j+l,NBSIZE) << ","<<(void *) A<<" )" << endl;
     bf->opencl_getv(N.at(i)->P,A,j,min(j+l,NBSIZE));
 
     l -= (NBSIZE - j);
     A += (NBSIZE - j);
     for(++i; l > 0; ++i){
-//        cout << "\tNeurons[" << i << "]::P.get( " << 0 <<","<< min(j+l,NBSIZE) << ","<<(void *) A<<" )" << endl;
+//        if(VERBOSE) cout << "\tNeurons[" << i << "]::P.get( " << 0 <<","<< min(j+l,NBSIZE) << ","<<(void *) A<<" )" << endl;
         bf->opencl_getv(N.at(i)->P,A,0,min(l,NBSIZE));
         l -= NBSIZE;
         A += NBSIZE;
@@ -348,13 +348,13 @@ void Neurons::set(size_t start,int l,float *A)
 {
     int i = start/NBSIZE;
     int j = start - NBSIZE*i;
-//    cout << "\tNeurons[" << i << "]::P.set( " << j <<","<< min(j+l,NBSIZE) << ","<<(void *) A<<" )" << endl;
+//    if(VERBOSE) cout << "\tNeurons[" << i << "]::P.set( " << j <<","<< min(j+l,NBSIZE) << ","<<(void *) A<<" )" << endl;
     bf->opencl_setv(N.at(i)->P,A,j,min(j+l,NBSIZE));
 
     l -= (NBSIZE - j);
     A += (NBSIZE - j);
     for(++i; l > 0; ++i){
-//        cout << "\tNeurons[" << i << "]::P.set( " << 0 <<","<< min(j+l,NBSIZE) << ","<<(void *) A<<" )" << endl;
+//        if(VERBOSE) cout << "\tNeurons[" << i << "]::P.set( " << 0 <<","<< min(j+l,NBSIZE) << ","<<(void *) A<<" )" << endl;
         bf->opencl_setv(N.at(i)->P,A,0,min(l,NBSIZE));
         l -= NBSIZE;
         A += NBSIZE;

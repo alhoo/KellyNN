@@ -14,6 +14,9 @@
 #define DEBUG (0)
 #endif
 
+#ifndef VERBOSE
+#define VERBOSE (0)
+#endif
 
 using namespace std;
 

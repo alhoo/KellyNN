@@ -4,20 +4,20 @@
 void print_opencl_error(cl_int err);
 
 opencl_brain_functions::~opencl_brain_functions(){
-    cout << "\t\t\topencl_brain_functions::delete" << endl;
+    if(VERBOSE>1) cout << "\t\t\topencl_brain_functions::delete" << endl;
     if(DEBUG) {int quit = 0; cin >> quit; assert(quit);};
     //cout << "\t\t\tkernels..\t\t[success]" << endl;
     for(int i = 0; i < 11; ++i)
         clReleaseKernel(kernels[i]);
     info();
-    cout << "\t\t\tqueue...\t\t[fail]" << endl;
+    if(VERBOSE>1) cout << "\t\t\tqueue...\t\t[fail]" << endl;
     wait();
 //    clReleaseCommandQueue(queue);
-    cout << "\t\t\tcontext..\t\t[success]" << endl;
+    if(VERBOSE>1) cout << "\t\t\tcontext..\t\t[success]" << endl;
     clReleaseContext(ctx);
 }
 opencl_brain_functions::opencl_brain_functions(int w,int I,int O):w(w),I(I),O(O){
-	cout << "\t\t\treserving a temp of size " << w*w << endl;
+    if(VERBOSE>1) cout << "\t\t\treserving a temp of size " << w*w << endl;
     if(DEBUG) {int quit = 0; cin >> quit; assert(quit);};
     tmp = new cl_float[w*w];
     for(int i = 0; i < w*w; ++i) tmp[i]=1.0;
@@ -39,7 +39,7 @@ opencl_brain_functions::opencl_brain_functions(int w,int I,int O):w(w),I(I),O(O)
     init_kernels();
 }
 cl_mem opencl_brain_functions::gpu_malloc(cl_mem M,size_t s,float a){
-    cout << "\t\t\tgpu_malloc()" << endl;
+    if(VERBOSE>1) cout << "\t\t\tgpu_malloc()" << endl;
     if(DEBUG) {int quit = 0; cin >> quit; assert(quit);};
     M = clCreateBuffer(ctx, CL_MEM_READ_WRITE | CL_MEM_ALLOC_HOST_PTR, s * sizeof(cl_float), NULL, &err);
     assert(err == CL_SUCCESS);
@@ -49,7 +49,7 @@ cl_mem opencl_brain_functions::gpu_malloc(cl_mem M,size_t s,float a){
     return M;
 }
 void opencl_brain_functions::gpu_free(cl_mem M){
-    cout << "\t\t\tgpu_free()" << endl;
+    if(VERBOSE>1) cout << "\t\t\tgpu_free()" << endl;
     if(DEBUG) {int quit = 0; cin >> quit; assert(quit);};
     size_t s;
     clGetMemObjectInfo(M,CL_MEM_SIZE,sizeof(size_t),&s,NULL);
@@ -60,7 +60,7 @@ void opencl_brain_functions::gpu_free(cl_mem M){
 
 void opencl_brain_functions::wait(int i){
     if (err != CL_SUCCESS) {
-        cout << "\t\t\t(" << i << ")";
+        if(VERBOSE>1) cout << "\t\t\t(" << i << ")";
         print_opencl_error(err);
     }
     else {
@@ -71,7 +71,7 @@ void opencl_brain_functions::wait(int i){
 
 
 void    opencl_brain_functions::opencl_pay_neuron(Col BAL,Col NW,Mat SW,int i,float v){
-    cout << "\t\t\topencl_pay_neuron()" << endl;
+    if(VERBOSE>1) cout << "\t\t\topencl_pay_neuron()" << endl;
     if(DEBUG) {int quit = 0; cin >> quit; assert(quit);};
     opencl_getv(BAL,tmp,i,i+1);
     tmp[0] += v;
@@ -84,24 +84,24 @@ void    opencl_brain_functions::opencl_pay_neuron(Col BAL,Col NW,Mat SW,int i,fl
 }
 
 void opencl_brain_functions::opencl_setv(Mat S,long *a,int start, int stop){
-//    cout << "\t\t\topencl_brain_functions::opencl_setv\t";
+//    if(VERBOSE>1) cout << "\t\t\topencl_brain_functions::opencl_setv\t";
     if(DEBUG) {int quit = 0; cin >> quit; assert(quit);};
     assert(start < stop);
     err = clEnqueueWriteBuffer(queue, S, CL_TRUE, start*sizeof(long),
         (stop - start)* sizeof(*a), a, 0, NULL, &event);
     assert(err == CL_SUCCESS);
-//    cout << "\t\t\tdone" << endl;
+//    if(VERBOSE>1) cout << "\t\t\tdone" << endl;
     wait();
 }
 void opencl_brain_functions::opencl_getv(Mat S,long *a,int start, int stop)
 {
-//    cout << "\t\t\topencl_brain_functions::opencl_getv\t";
+//    if(VERBOSE>1) cout << "\t\t\topencl_brain_functions::opencl_getv\t";
     if(DEBUG) {int quit = 0; cin >> quit; assert(quit);};
     assert(start < stop);
     err = clEnqueueReadBuffer(queue, S, CL_TRUE, start*sizeof(long),
         (stop - start)*sizeof(long), a, 0, NULL, &event);
     assert(err == CL_SUCCESS);
-//    cout << "\t\t\tdone" << endl;
+//    if(VERBOSE>1) cout << "\t\t\tdone" << endl;
     wait();
 }
 void opencl_brain_functions::opencl_setv(Mat S,float *a,int start, int stop){
@@ -116,13 +116,13 @@ void opencl_brain_functions::opencl_setv(Mat S,float *a,int start, int stop){
 }
 void opencl_brain_functions::opencl_getv(Mat S,float *a,int start, int stop)
 {
-//    cout << "\t\t\topencl_brain_functions::opencl_getv\t";
+//    if(VERBOSE>1) cout << "\t\t\topencl_brain_functions::opencl_getv\t";
     if(DEBUG) {int quit = 0; cin >> quit; assert(quit);};
     assert(start < stop);
     err = clEnqueueReadBuffer(queue, S, CL_TRUE, start*sizeof(float),
         (stop - start)*sizeof(float), a, 0, NULL, &event);
     assert(err == CL_SUCCESS);
-//    cout << "\t\t\tdone" << endl;
+//    if(VERBOSE>1) cout << "\t\t\tdone" << endl;
     wait();
 }
 
@@ -131,7 +131,7 @@ void opencl_brain_functions::opencl_getv(Mat S,float *a,int start, int stop)
 
 
 void    opencl_brain_functions::opencl_synaps_die(Mat SBAL, Mat SP1,long s, long ve, long l){
-    cout << "\t\t\topencl_synaps_die()" << endl;
+    if(VERBOSE>1) cout << "\t\t\topencl_synaps_die()" << endl;
     if(DEBUG) {int quit = 0; cin >> quit; assert(quit);};
     if(l == 0) return;
     int i = 10;
@@ -158,7 +158,7 @@ void    opencl_brain_functions::opencl_synaps_die(Mat SBAL, Mat SP1,long s, long
 void    opencl_brain_functions::opencl_update_synaps_info(Col M){
     int i = 9;
     cerr << "\t\t\tkernel[" << i << "]" << endl;
-    cout << "\t\t\topencl_update_synaps_info(Col M)"  << endl;
+    if(VERBOSE>1) cout << "\t\t\topencl_update_synaps_info(Col M)"  << endl;
     if(DEBUG) {int quit = 0; cin >> quit; assert(quit);};
     clSetKernelArg(kernels[i], 0, sizeof(cl_mem), (void *)&M);
     size_t global_item_size = 1;
@@ -172,8 +172,8 @@ void    opencl_brain_functions::opencl_update_synaps_info(Col M){
 void opencl_brain_functions::opencl_synaps_bet(Mat SBET0,Mat SBAL,Mat SP0,Mat SP)
 {
     int i = 0;
-    cout << "\t\t\tkernel[" << i << "]" << endl;
-    cout << "\t\t\topencl_synaps_bet(Mat SBET0,Mat SBAL,Mat SP0,Mat SP)" << endl;
+    if(VERBOSE>1) cout << "\t\t\tkernel[" << i << "]" << endl;
+    if(VERBOSE>1) cout << "\t\t\topencl_synaps_bet(Mat SBET0,Mat SBAL,Mat SP0,Mat SP)" << endl;
     if(DEBUG) {int quit = 0; cin >> quit; assert(quit);};
     clSetKernelArg(kernels[i], 0, sizeof(cl_mem), (void *)&SBET0);
     clSetKernelArg(kernels[i], 1, sizeof(cl_mem), (void *)&SBAL);
@@ -190,7 +190,7 @@ void opencl_brain_functions::opencl_synaps_bet(Mat SBET0,Mat SBAL,Mat SP0,Mat SP
 void opencl_brain_functions::opencl_bet_sum(Col NBET0,Mat SBET0)
 {
     int i = 1;
-    cout << "\t\t\tkernel[" << i << "]" << endl;
+    if(VERBOSE>1) cout << "\t\t\tkernel[" << i << "]" << endl;
     if(DEBUG) {int quit = 0; cin >> quit; assert(quit);};
     clSetKernelArg(kernels[i], 0, sizeof(cl_mem), (void *)&NBET0);
     clSetKernelArg(kernels[i], 1, sizeof(cl_mem), (void *)&SBET0);
@@ -205,7 +205,7 @@ void opencl_brain_functions::opencl_bet_sum(Col NBET0,Mat SBET0)
 void opencl_brain_functions::opencl_synaps_refresh(Mat SP0,Mat SP01,Mat SP00,Col NP)
 {
     int i = 2;
-    cout << "\t\t\tkernel[" << i << "]" << endl;
+    if(VERBOSE>1) cout << "\t\t\tkernel[" << i << "]" << endl;
     if(DEBUG) {int quit = 0; cin >> quit; assert(quit);};
     clSetKernelArg(kernels[i], 0, sizeof(cl_mem), (void *)&SP0);
     clSetKernelArg(kernels[i], 1, sizeof(cl_mem), (void *)&SP01);
@@ -222,7 +222,7 @@ void opencl_brain_functions::opencl_synaps_refresh(Mat SP0,Mat SP01,Mat SP00,Col
 void opencl_brain_functions::opencl_neuron_refresh(Col NBET0,Col NBET1,Col NP)
 {
     int i = 3;
-    cout << "\t\t\tkernel[" << i << "]" << endl;
+    if(VERBOSE>1) cout << "\t\t\tkernel[" << i << "]" << endl;
     if(DEBUG) {int quit = 0; cin >> quit; assert(quit);};
     clSetKernelArg(kernels[i], 0, sizeof(cl_mem), (void *)&NBET0);
     clSetKernelArg(kernels[i], 1, sizeof(cl_mem), (void *)&NBET1);
@@ -238,7 +238,7 @@ void opencl_brain_functions::opencl_neuron_refresh(Col NBET0,Col NBET1,Col NP)
 
 void opencl_brain_functions::opencl_find_winning_neurons(Col NW,Mat SW){
     int i = 8;
-    cout << "\t\t\tkernel[" << i << "]" << endl;
+    if(VERBOSE>1) cout << "\t\t\tkernel[" << i << "]" << endl;
     if(DEBUG) {int quit = 0; cin >> quit; assert(quit);};
     clSetKernelArg(kernels[i], 0, sizeof(cl_mem), (void *)&NW);
     clSetKernelArg(kernels[i], 1, sizeof(cl_mem), (void *)&SW);
@@ -251,7 +251,7 @@ void opencl_brain_functions::opencl_find_winning_neurons(Col NW,Mat SW){
     wait(i);
 }
 void opencl_brain_functions::opencl_set(Col NW,int n,cl_float v){
-    cout << "\t\t\topencl_set()" << endl;
+    if(VERBOSE>1) cout << "\t\t\topencl_set()" << endl;
     if(DEBUG) {int quit = 0; cin >> quit; assert(quit);};
     err = clEnqueueWriteBuffer(queue, NW, CL_TRUE, 0,
         (n)* sizeof(v), &v, 0, NULL, &event);
@@ -260,7 +260,7 @@ void opencl_brain_functions::opencl_set(Col NW,int n,cl_float v){
 void opencl_brain_functions::opencl_find_winning_synapses(Mat SBET0,Mat SBET1,Col NBET0,Col NBET1,Col NW,Mat SW)
 {
     int i = 4;
-    cout << "\t\t\tkernel[" << i << "]" << endl;
+    if(VERBOSE>1) cout << "\t\t\tkernel[" << i << "]" << endl;
     if(DEBUG) {int quit = 0; cin >> quit; assert(quit);};
     clSetKernelArg(kernels[i], 0, sizeof(cl_mem), (void *)&SBET0);
     clSetKernelArg(kernels[i], 1, sizeof(cl_mem), (void *)&SBET1);
@@ -279,7 +279,7 @@ void opencl_brain_functions::opencl_find_winning_synapses(Mat SBET0,Mat SBET1,Co
 void opencl_brain_functions::opencl_synaps_learn(Mat SP00,Mat SBET0,Mat SBET1,Mat SW,Col NBET0,Col NBET1,Col SINFO)
 {
     int i = 5;
-    cout << "\t\t\tkernel[" << i << "]" << endl;
+    if(VERBOSE>1) cout << "\t\t\tkernel[" << i << "]" << endl;
     if(DEBUG) {int quit = 0; cin >> quit; assert(quit);};
     clSetKernelArg(kernels[i], 0, sizeof(cl_mem), (void *)&SP00);
     clSetKernelArg(kernels[i], 1, sizeof(cl_mem), (void *)&SBET0);
@@ -299,7 +299,7 @@ void opencl_brain_functions::opencl_synaps_learn(Mat SP00,Mat SBET0,Mat SBET1,Ma
 void opencl_brain_functions::opencl_synaps_learn2(Mat SP,Mat SW,Col SINFO)
 {
     int i = 6;
-    cout << "\t\t\tkernel[" << i << "]" << endl;
+    if(VERBOSE>1) cout << "\t\t\tkernel[" << i << "]" << endl;
     if(DEBUG) {int quit = 0; cin >> quit; assert(quit);};
     clSetKernelArg(kernels[i], 0, sizeof(cl_mem), (void *)&SP);
     clSetKernelArg(kernels[i], 1, sizeof(cl_mem), (void *)&SW);
@@ -315,7 +315,7 @@ void opencl_brain_functions::opencl_synaps_learn2(Mat SP,Mat SW,Col SINFO)
 void opencl_brain_functions::opencl_pay(Mat SBET0,Mat SBET1,Col NWIN,Col NBET0,Col NBET1,Mat SBAL,Col NBAL,Col NTMP,Mat SW,Col NW)
 {
     int i = 7;
-    cout << "\t\t\tkernel[" << i << "]" << endl;
+    if(VERBOSE>1) cout << "\t\t\tkernel[" << i << "]" << endl;
     if(DEBUG) {int quit = 0; cin >> quit; assert(quit);};
     clSetKernelArg(kernels[i], 0, sizeof(cl_mem), (void *)&SBET0);
     clSetKernelArg(kernels[i], 1, sizeof(cl_mem), (void *)&SBET1);
@@ -337,11 +337,11 @@ void opencl_brain_functions::opencl_pay(Mat SBET0,Mat SBET1,Col NWIN,Col NBET0,C
 }
 void opencl_brain_functions::opencl_fill(Mat S,cl_float a,int h)
 {
-    cout << "\t\t\topencl_fill()" << endl;
+    if(VERBOSE>1) cout << "\t\t\topencl_fill()" << endl;
     if(DEBUG) {int quit = 0; cin >> quit; assert(quit);};
     cl_float b[h];
     for(int i = 0; i < h; ++i) b[h] = a;
-    cout << "\t\t\topencl_fill(Mat "<<S<<",cl_float "<<a<<",int "<<h<<")" << endl;
+    if(VERBOSE>1) cout << "\t\t\topencl_fill(Mat "<<S<<",cl_float "<<a<<",int "<<h<<")" << endl;
     opencl_setv(S,b,0,h);
     for(int i = 0; i < h; ++i) b[h] = 0;
     opencl_getv(S,b,0,h);
@@ -351,7 +351,7 @@ void opencl_brain_functions::opencl_fill(Mat S,cl_float a,int h)
 
 cl_float   opencl_brain_functions::opencl_sum(Col M, long s)
 {
-    cout << "\t\t\topencl_sum" << endl;
+    if(VERBOSE>1) cout << "\t\t\topencl_sum" << endl;
     if(DEBUG) {int quit = 0; cin >> quit; assert(quit);};
     opencl_getv(M,tmp,0,s);
     float SUM = tmp[0];
@@ -367,15 +367,15 @@ void humanprint(unsigned long s){
         s/=1024;
         i++;
     }
-    cout << s << mult[i];
+    if(VERBOSE>1) cout << s << mult[i];
     if(i) cout << "\t\t\tB";
 }
 
 void opencl_brain_functions::info(){
-    cout << "\t\t\tmemory allocated on the cl-device: ";
+    if(VERBOSE>1) cout << "\t\t\tmemory allocated on the cl-device: ";
     if(DEBUG) {int quit = 0; cin >> quit; assert(quit);};
     humanprint(mem_allocated);
-    cout << endl;
+    if(VERBOSE>1) cout << endl;
 }
 
 void opencl_brain_functions::init_kernel(int i , string filename){
@@ -385,16 +385,16 @@ void opencl_brain_functions::init_kernel(int i , string filename){
 
     int err;
 
-    cout << "\t\t\tloading kernel[" << i << "] " << filename << endl;
+    if(VERBOSE>1) cout << "\t\t\tloading kernel[" << i << "] " << filename << endl;
     if(DEBUG) {int quit = 0; cin >> quit; assert(quit);};
     fp = fopen(filename.c_str(), "r");
     if (!fp) {
-        cout  << "!";
+        if(VERBOSE>1) cout  << "!";
         cerr << "\t\t\tFailed to load kernel " << filename << "." << endl;
         exit(1);
     }
     else {
-        cout << "\t\t\t.";
+        if(VERBOSE>1) cout << "\t\t\t.";
     }
 //    char kernelname[strlen(filename - 14)];
 //    int n = 0;
@@ -427,7 +427,7 @@ void opencl_brain_functions::init_kernel(int i , string filename){
     assert(err == CL_SUCCESS);
 }
 void opencl_brain_functions::init_kernels(string filename){
-    cout << "\t\t\tloading kernels";
+    if(VERBOSE>1) cout << "\t\t\tloading kernels";
     if(DEBUG) {int quit = 0; cin >> quit; assert(quit);};
     ifstream inf(filename.c_str());
     int i = 0;
@@ -438,7 +438,7 @@ void opencl_brain_functions::init_kernels(string filename){
         init_kernel(i, sourcefile);
         i++;
     }
-    cout << "\t\t\tok" << endl;
+    if(VERBOSE>1) cout << "\t\t\tok" << endl;
 }
 
 
@@ -452,32 +452,32 @@ void opencl_brain_functions::init_kernels(string filename){
 
 
 void opencl_brain_functions::print(Mat S, int w, int h,bool l){
-    cout << "\t\t\tprint(M)" << endl;
+    if(VERBOSE>1) cout << "\t\t\tprint(M)" << endl;
     if(DEBUG) {int quit = 0; cin >> quit; assert(quit);};
-    cout << (void *) S << "\t";
+    if(VERBOSE>1) cout << (void *) S << "\t";
     if(l){
             long mtmp[w*h];
             opencl_getv(S,mtmp,0,w*h);
             for(int i = 0; i < h; ++i){
-                cout << mtmp[i*w];
+                if(VERBOSE>1) cout << mtmp[i*w];
                 for(int j = 1; j < w; ++j){
-                    cout << "\t\t\t\t" << mtmp[i*w + j];
+                    if(VERBOSE>1) cout << "\t\t\t\t" << mtmp[i*w + j];
                 }
-                cout << endl;
+                if(VERBOSE>1) cout << endl;
                 if(i + 1 != h)
-                    cout << "\t\t\t\t\t";
+                    if(VERBOSE>1) cout << "\t\t\t\t\t";
             }
         }else{
             cl_float mtmp[w*h];
             opencl_getv(S,mtmp,0,w*h);
             for(int i = 0; i < h; ++i){
-                cout << mtmp[i*w];
+                if(VERBOSE>1) cout << mtmp[i*w];
                 for(int j = 1; j < w; ++j){
-                    cout << "\t\t\t\t" << mtmp[i*w + j];
+                    if(VERBOSE>1) cout << "\t\t\t\t" << mtmp[i*w + j];
                 }
-                cout << endl;
+                if(VERBOSE>1) cout << endl;
                 if(i + 1 != h)
-                    cout << "\t\t\t\t\t";
+                    if(VERBOSE>1) cout << "\t\t\t\t\t";
             }
     }
 }

@@ -6,7 +6,6 @@ __kernel void pay(
     __global float * NBET1,
     __global float * SBAL,
     __global float * NBAL,
-    __global float * NTMP,
     __global float * SW,
     __global float * NW,
     __global const long *w

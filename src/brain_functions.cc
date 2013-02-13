@@ -118,6 +118,7 @@ void opencl_brain_functions::opencl_setv(Mat S,float *a,int start, int stop){
     assert(start < stop);
     err = clEnqueueWriteBuffer(queue, S, CL_TRUE, start*sizeof(float),
         (stop - start)*sizeof(float), a, 0, NULL, &event);
+    print_opencl_error(err);
     assert(err == CL_SUCCESS);
     //cout << "\t\t\tdone" << endl;
     wait();

@@ -1,3 +1,7 @@
+/**
+This function is written according to the matrix brain tag-2.00.00
+
+**/
 __kernel void pay(
     __global float * SBET0,
     __global float * SBET1,

@@ -148,6 +148,10 @@ SynapsBlock::~SynapsBlock(){
     state = 0;
     if(VERBOSE) cout << "\t\tSB(" << position(x,y) << ") removed, state = " << state << endl;
 }
+
+/**
+This function is the same as in tag-2.00.00 function Brain::refresh()
+**/
 seconds SynapsBlock::update()
 {
 //    seconds d = timeOfCost(cost());

@@ -69,10 +69,12 @@ void opencl_brain_functions::wait(int i){
     assert(err == CL_SUCCESS);
 }
 
-float   opencl_brain_functions::opencl_get_bal(Col N,Mat S){
+float   opencl_brain_functions::opencl_get_bal(Col N,Mat S,Col NB1, Col NB0){
    
-    float ret = opencl_sum(N, w);
-    ret      += opencl_sum(S, w*w);
+    float ret = opencl_sum(N  , w);
+    ret      += opencl_sum(NB0, w);
+    ret      += opencl_sum(NB1, w);
+    ret      += opencl_sum(S  , w*w);
     return ret;
 }
 

@@ -2,7 +2,7 @@
 
 void Brain::R   (float a)
 {
-N.R(a);
+    N.R(a);
 }
 
 
@@ -15,7 +15,8 @@ void Brain::in  	()
 {
     cout << "B::in()" << endl;
     N.I(io.I());
-    R(e.R());
+    N.R(e.R());
+    //R(e.R());
 }
 
 void Brain::out 	()

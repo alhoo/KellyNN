@@ -69,6 +69,12 @@ void opencl_brain_functions::wait(int i){
     assert(err == CL_SUCCESS);
 }
 
+float   opencl_brain_functions::opencl_get_bal(Col N,Mat S){
+   
+    float ret = opencl_sum(N, w);
+    ret      += opencl_sum(S, w*w);
+    return ret;
+}
 
 void    opencl_brain_functions::opencl_pay_neuron(Col BAL,Col NW,Mat SW,int i,float v){
     if(VERBOSE>1) cout << "\t\t\topencl_pay_neuron()" << endl;

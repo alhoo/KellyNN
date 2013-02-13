@@ -13,7 +13,6 @@ class Brain{
     neural_map N;
     IO io;
     emotion e;
-    void R   (float);
     public:
         Brain	 	(IO io, emotion e);
         void in  	();

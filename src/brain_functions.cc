@@ -84,11 +84,11 @@ void    opencl_brain_functions::opencl_pay_neuron(Col BAL,Col NW,Mat SW,int i,fl
     opencl_getv(BAL,tmp,i,i+1);
     tmp[0] += v;
     opencl_setv(BAL,tmp,i,i+1);
-    for(int j = 0; j < w; ++j)
-        tmp[j] = (v>0)*2.0 - 1.0;
-    opencl_setv(SW,tmp,i*w,(i + 1)*w);
     tmp[0] = (v>0)*2.0 - 1.0;
-    opencl_setv(NW,tmp,i,i+1);
+    int i;
+    for(i = 0; i < I; ++i) tmp[i+1] = 1.0;
+    for(; i < w; ++i) tmp[i+1] = 0;
+    opencl_setv(NW,tmp,0,w);
 }
 
 void opencl_brain_functions::opencl_setv(Mat S,long *a,int start, int stop){
@@ -321,21 +321,20 @@ void opencl_brain_functions::opencl_synaps_learn2(Mat SP,Mat SW,Col SINFO)
     assert(err == CL_SUCCESS);
     wait(i);
 }
-void opencl_brain_functions::opencl_pay(Mat SBET0,Mat SBET1,Mat STMP,Col NBET0,Col NBET1,Mat SBAL,Col NBAL,Mat SW,Col NW)
+void opencl_brain_functions::opencl_pay(Mat SBET0,Mat SBET1,Col NBET0,Col NBET1,Mat SBAL,Col NBAL,Mat SW,Col NW)
 {
     int i = 7;
     if(VERBOSE>1) cout << "\t\t\tkernel[" << i << "]" << endl;
     if(DEBUG) {int quit = 0; cin >> quit; assert(quit);};
     clSetKernelArg(kernels[i], 0, sizeof(cl_mem), (void *)&SBET0);
     clSetKernelArg(kernels[i], 1, sizeof(cl_mem), (void *)&SBET1);
-    clSetKernelArg(kernels[i], 2, sizeof(cl_mem), (void *)&STMP );
-    clSetKernelArg(kernels[i], 3, sizeof(cl_mem), (void *)&NBET0);
-    clSetKernelArg(kernels[i], 4, sizeof(cl_mem), (void *)&NBET1);
-    clSetKernelArg(kernels[i], 5, sizeof(cl_mem), (void *)&SBAL);
-    clSetKernelArg(kernels[i], 6, sizeof(cl_mem), (void *)&NBAL);
-    clSetKernelArg(kernels[i], 7, sizeof(cl_mem), (void *)&SW);
-    clSetKernelArg(kernels[i], 8, sizeof(cl_mem), (void *)&NW);
-    clSetKernelArg(kernels[i], 9, sizeof(cl_mem), (void *)&world);
+    clSetKernelArg(kernels[i], 2, sizeof(cl_mem), (void *)&NBET0);
+    clSetKernelArg(kernels[i], 3, sizeof(cl_mem), (void *)&NBET1);
+    clSetKernelArg(kernels[i], 4, sizeof(cl_mem), (void *)&SBAL);
+    clSetKernelArg(kernels[i], 5, sizeof(cl_mem), (void *)&NBAL);
+    clSetKernelArg(kernels[i], 6, sizeof(cl_mem), (void *)&SW);
+    clSetKernelArg(kernels[i], 7, sizeof(cl_mem), (void *)&NW);
+    clSetKernelArg(kernels[i], 8, sizeof(cl_mem), (void *)&world);
 /*
     clSetKernelArg(kernels[i], 0, sizeof(cl_mem), (void *)&SBET0);
     clSetKernelArg(kernels[i], 1, sizeof(cl_mem), (void *)&SBET1);

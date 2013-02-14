@@ -84,11 +84,11 @@ void    opencl_brain_functions::opencl_pay_neuron(Col BAL,Col NW,Mat SW,int i,fl
     opencl_getv(BAL,tmp,i,i+1);
     tmp[0] += v;
     opencl_setv(BAL,tmp,i,i+1);
-    for(int j = 0; j < w; ++j)
-        tmp[j] = (v>0)*2.0 - 1.0;
-    opencl_setv(SW,tmp,i*w,(i + 1)*w);
     tmp[0] = (v>0)*2.0 - 1.0;
-    opencl_setv(NW,tmp,i,i+1);
+    int i;
+    for(i = 0; i < I; ++i) tmp[i+1] = 1.0;
+    for(; i < w; ++i) tmp[i+1] = 0;
+    opencl_setv(NW,tmp,0,w);
 }
 
 void opencl_brain_functions::opencl_setv(Mat S,long *a,int start, int stop){

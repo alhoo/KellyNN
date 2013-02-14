@@ -14,11 +14,15 @@ __kernel void find_winning_synapses(
 {
     int i   = get_global_id(0);
     if(i < w[1]){
-        if(NW[i%w[0]]*sign(SBET0[i] - SBET1[i] + 0.00001)*sign(NBET0[i%w[0]] - NBET1[i%w[0]] + 0.00001) == 1.0){
+        float cSW = NW[i%w[0]]*sign(SBET0[i] - SBET1[i] + 0.00001)*sign(NBET0[i%w[0]] - NBET1[i%w[0]] + 0.00001);
+        if(cSW > 0.0){
             SW[i] = 1.0;
         }
-        else{
+        else if(cSW  < 0){
             SW[i] = -1.0;
+        }
+        else {
+            SW[i] = 0.0;
         }
 /**
         SW[i] = SW[i] + NW[i%w[0]]*sign(SBET0[i] - SBET1[i] + 0.00001)*sign(NBET0[i%w[0]] - NBET1[i%w[0]] + 0.00001);

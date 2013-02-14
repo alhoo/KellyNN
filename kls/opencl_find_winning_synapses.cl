@@ -14,7 +14,7 @@ __kernel void find_winning_synapses(
 {
     int i   = get_global_id(0);
     if(i < w[1]){
-        float cSW = NW[i%w[0]]*sign(SBET0[i] - SBET1[i] + 0.00001)*sign(NBET0[i%w[0]] - NBET1[i%w[0]] + 0.00001);
+        float cSW = NW[i%w[0]]*sign(SBET0[i] - SBET1[i] - 0.00001)*sign(NBET0[i%w[0]] - NBET1[i%w[0]] + 0.00001);
         if(cSW > 0.0){
             SW[i] = 1.0;
         }
@@ -24,9 +24,5 @@ __kernel void find_winning_synapses(
         else {
             SW[i] = 0.0;
         }
-/**
-        SW[i] = SW[i] + NW[i%w[0]]*sign(SBET0[i] - SBET1[i] + 0.00001)*sign(NBET0[i%w[0]] - NBET1[i%w[0]] + 0.00001);
-        SW[i] = SW[i] + tanh(NW[i%w[0]]*((SBET0[i] - SBET1[i])*(NBET0[i%w[0]] - NBET1[i%w[0]]) + 1)); 
-**/
     }
 }

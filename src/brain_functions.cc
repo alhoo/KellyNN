@@ -88,6 +88,8 @@ void    opencl_brain_functions::opencl_pay_neuron(Col BAL,Col NW,Mat SW,int i,fl
     for(i = 0; i < I; ++i) tmp[i+1] = 1.0;
     for(; i < w; ++i) tmp[i+1] = 0;
     opencl_setv(NW,tmp,0,w);
+    for(i = 0; i < w; ++i) tmp[0] = (v>0)*2.0 - 1.0;
+    opencl_setv(SW,tmp,0,w);
 }
 
 void opencl_brain_functions::opencl_setv(Mat S,long *a,int start, int stop){

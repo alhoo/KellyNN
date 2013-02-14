@@ -7,8 +7,8 @@
 #include <cstdio>
 
 #define MAX_SOURCE_SIZE 4096
-#define NEURONINITBAL 2000
-#define SYNAPSINITBAL 1500
+#define NEURONINITBAL 10000
+#define SYNAPSINITBAL 1000
 
 #ifndef DEBUG
 #define DEBUG (0)
@@ -62,7 +62,7 @@ class opencl_brain_functions{
         void    opencl_update_synaps_info(Col);
         void    opencl_synaps_learn(Mat,Mat,Mat,Mat,Col,Col,Col);
         void    opencl_synaps_learn2(Mat,Mat,Col);
-        void    opencl_pay(Mat,Mat,Mat,Col,Col,Mat,Col,Mat,Col);
+        void    opencl_pay(Mat,Mat,Col,Col,Mat,Col,Mat,Col);
         float   opencl_get_bal(Col,Mat,Col,Col);
         void    opencl_pay_neuron(Col,Col,Mat,int,float);
         void    opencl_synaps_die(Mat,Mat,long s, long v, long l);

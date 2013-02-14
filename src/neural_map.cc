@@ -196,7 +196,7 @@ void SynapsBlock::R(float v){
     bf->opencl_update_synaps_info(SINFO);
 
 //    print();
-    bf->opencl_pay(SBET0,SBET1,STMP,N->BET0,N->BET1,SBAL,N->BAL,SW,N->W);
+    bf->opencl_pay(SBET0,SBET1,N->BET0,N->BET1,SBAL,N->BAL,SW,N->W);
 //    printS();
 }
 

@@ -3,8 +3,11 @@
 #include <CL/cl.h>
 #include <iostream>
 #include <fstream>
+#include <glob.h>
+#include <vector>
 #include <cassert>
 #include <cstdio>
+#include <map>
 
 #define MAX_SOURCE_SIZE 4096
 #define NEURONINITBAL 10000
@@ -28,14 +31,15 @@ class opencl_brain_functions{
     cl_device_id    device;
     cl_command_queue queue;
     cl_event        event;
-    cl_kernel       kernels[15];
+    map<string,cl_kernel>       kernels;
+    //cl_kernel       kernels[15];
     cl_int          err;
     Col             world;
     cl_float        *tmp;
     int             w,I,O;
     unsigned long   mem_allocated;
-    void init_kernels(string = "kernels.list");
-    void init_kernel(int,string);
+    void init_kernels(string = "");
+    void init_kernel(string);
 
 
     public:
@@ -50,7 +54,7 @@ class opencl_brain_functions{
         void    opencl_getv(Mat S,long *a,int start, int stop);
         void    opencl_setv(Mat S,float *a,int start, int stop);
         void    opencl_getv(Mat S,float *a,int start, int stop);
-        void    wait(int i = -1);
+        void    wait();
 
         void    opencl_synaps_bet(Mat,Mat,Mat,Mat);
         void    opencl_bet_sum(Col,Mat);
@@ -70,6 +74,7 @@ class opencl_brain_functions{
         cl_float    opencl_sum(Mat M, long l);
 
         void    print(Mat S, int w, int h,bool l = 0);
+        void    print(Mat S, int p);
 
 };
 

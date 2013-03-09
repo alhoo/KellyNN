@@ -23,11 +23,10 @@ seconds timeOfIncome(float income_snt);
 seconds timeOfCost(float income_snt);
 
 //G/s = M/ms = k/µs = B/ns|€/G = n€/B
+/*
 float static stateCosts[4]     		= {0.05,1.6 ,8.75 ,133}; // n€/B
-float static stateStayCosts[4]     	= {.001,.05 ,.277 ,4.2}; // n€/B/s*(10^-6)
 float static stateCapacities[4]		= {2048,256 ,32   ,3  }; // GB
 float static stateWriteCost[4] 		= {0.0005,0.016,0 ,0  }; // n€/B
-float static stateBandwidth[4] 		= {0.1 ,0.5 ,64   ,320}; // B/ns
 float static statePowerDown[4] 		= {1   ,1   ,0    ,0  }; // bool
 
 float static stateChangeInit[4*4] 	= {                       // B/ns
@@ -36,13 +35,16 @@ float static stateChangeInit[4*4] 	= {                       // B/ns
 4000000,100000 ,0   ,5000   ,
 4050000,100000 ,5000,0
 };
+*/
+
+float static stateStayCosts[4]     	= {.001,.05 ,.277 ,4.2}; // n€/B/s*(10^-6)
+float static stateBandwidth[4] 		= {0.1 ,0.5 ,64   ,320}; // B/ns
 float static stateChangeSpeed[4*4] 	= {                       // B/ns
 10e9,0.1 ,0.1,0.1,
 0.1 ,10e9,0.5,0.5,
 0.1 ,0.5 ,10e9,16,
 0.1 ,0.5 ,16 ,10e9
 };
-
 string static stateName[4] 		= {"hdd", "sdd", "ram", "gpu"};
 
 enum {HDD,SDD,RAM,GPU};
@@ -58,9 +60,14 @@ class NeuronBlock{
         NeuronBlock();
         ~NeuronBlock();
         size_t size();
+        void printN();
+        void printN(int p);
         void pay(int, float);
+        void kill(int p);
+        void init(int p);
         float setState(statetype s);
         Col  P,TMP,BAL,BET0,BET1,W,L; //float8
+        float Bal();
     private:
         statetype state;
 };
@@ -80,12 +87,16 @@ class SynapsBlock{
         ~SynapsBlock();
         //void R();
         void kill(long s,long l=1, long v=NBSIZE);
+        void kill(position p);
+        void init(position);
         void print();
         void printS();
+        void printS(position);
         void printW();
         seconds update();
         seconds cost();
         seconds expected();
+        float Bal();
 };
 
 typedef map<size_t,NeuronBlock *> nmap;
@@ -98,6 +109,7 @@ class    Neurons{
         void printN();
         void get(size_t start,int l,float *A);
         void set(size_t start,int l,float *A);
+        float Bal();
 };
 
 typedef map<position, SynapsBlock *> smap;
@@ -110,6 +122,7 @@ class    Synapses{
         void addBlock(SynapsBlock *S,position p);
         void update();
         position maxbid();
+        float Bal();
 };
 
 
@@ -128,6 +141,25 @@ class neural_map{
         void I(float * I);
         void O(float * O);
         void U(seconds t);
+//For testing the library:
+        float Bal();
+/*
+Initialize neurons and synapses at position
+*/
+        void initN(size_t);
+        void initS(position);
+/*
+Get the state of neurons and synapses at position
+*/
+        void stateN(size_t);
+        void stateS(position);
+/*
+Kill neurons and synapses at position
+*/
+        void killN(size_t);
+        void killS(position);
+
+        void setIO(size_t niN,size_t noN){ ni = niN; no = noN; }
 };
 
 #endif

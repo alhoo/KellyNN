@@ -38,7 +38,7 @@ neural_map::~neural_map()
 
 void neural_map::R(float a)
 {
-    set_neural_states(0,1,&a);
+   // set_neural_states(0,1,&a);
     bf->opencl_pay_neuron(N.at(0)->BAL,N.at(0)->W,S.at(position(0,0))->SW,0,a);
     S.at(position(0,0))->R(a);
 }
@@ -98,13 +98,13 @@ SYNAPSBLOCK
 SynapsBlock::SynapsBlock(NeuronBlock *N,size_t i,size_t j):N(N),x(i),y(j),state(GPU)
 {
     SINFO = bf->gpu_malloc(SINFO,SBSIZE,16);
-    SP0 = bf->gpu_malloc(SP0,SBSIZE,0.41);
-    SP1 = bf->gpu_malloc(SP1,SBSIZE,0.59);
+    SP0 = bf->gpu_malloc(SP0,SBSIZE,0.49);
+    SP1 = bf->gpu_malloc(SP1,SBSIZE,0.51);
     STMP = bf->gpu_malloc(STMP,SBSIZE,0);
-    SP00 = bf->gpu_malloc(SP00,SBSIZE,0.41);
-    SP01 = bf->gpu_malloc(SP01,SBSIZE,0.59);
-    SP10 = bf->gpu_malloc(SP10,SBSIZE,0.59);
-    SP11 = bf->gpu_malloc(SP11,SBSIZE,0.41);
+    SP00 = bf->gpu_malloc(SP00,SBSIZE,0.49);
+    SP01 = bf->gpu_malloc(SP01,SBSIZE,0.51);
+    SP10 = bf->gpu_malloc(SP10,SBSIZE,0.51);
+    SP11 = bf->gpu_malloc(SP11,SBSIZE,0.49);
     SP = bf->gpu_malloc(SP,SBSIZE,0.5);
     SBAL = bf->gpu_malloc(SBAL,SBSIZE,SYNAPSINITBAL);
     SBET0 = bf->gpu_malloc(SBET0,SBSIZE,0);
@@ -258,6 +258,9 @@ NeuronBlock::NeuronBlock():state(GPU)
     P = bf->gpu_malloc(P,NBSIZE,0.5);
     TMP = bf->gpu_malloc(TMP,NBSIZE);
     BAL = bf->gpu_malloc(BAL,NBSIZE,NEURONINITBAL);
+    float PleasureCenterInitBal = 100.0f*NEURONINITBAL;
+//FIXME separate this from the neuronblock
+    bf->opencl_setv(BAL,&PleasureCenterInitBal,0,1);
     BET0 = bf->gpu_malloc(BET0,NBSIZE,0);
     BET1 = bf->gpu_malloc(BET1,NBSIZE,0);
     W = bf->gpu_malloc(W,NBSIZE,0);
@@ -392,8 +395,20 @@ seconds timeOfCost(float income_snt){
     return timeOfIncome(income_snt);
 }
 
+void NeuronBlock::printN(int p){
+    cout << "\tNeuronBlock::N(" << p << ")" << endl;
+    cout << "\t\tN.P ";
+    bf->print(P,p);
+    cout << "\t\tN->BAL ";
+    bf->print(BAL,p);
+    cout << "\t\tN->BET0 ";
+    bf->print(BET0,p);
+    cout << "\t\tN->BET1 ";
+    bf->print(BET1,p);
+}
+
 void Neurons::printN(){
-    cout << "\tSynapsBlock::N()" << endl;
+    cout << "\tNeuronBlock::N()" << endl;
     cout << "\t\tN.P" << endl;
     bf->print(N[0]->P,NBSIZE,1);
     cout << "\t\tN->BAL" << endl;
@@ -408,6 +423,13 @@ void SynapsBlock::printW(){
 
     cout << "\t\tn : ";
     bf->print(SINFO,1,1);
+}
+void SynapsBlock::printS(position p){
+    cout << "\tSynapsBlock::S("<<p<<")" << endl;
+    cout << "\t\tSP ";
+    bf->print(SP,p.first*NBSIZE + p.second);
+    cout << "\t\tSBAL ";
+    bf->print(SBAL,p.first*NBSIZE + p.second);
 }
 void SynapsBlock::printS(){
     cout << "\tSynapsBlock::S()" << endl;
@@ -444,3 +466,133 @@ void SynapsBlock::print(){
     bf->print(SINFO,1,1);
 }
 
+/*
+Initialize neurons and synapses at position
+*/
+void neural_map::initN(size_t p)
+{
+    /*
+    P = bf->gpu_malloc(P,NBSIZE,0.5);
+    TMP = bf->gpu_malloc(TMP,NBSIZE);
+    BAL = bf->gpu_malloc(BAL,NBSIZE,NEURONINITBAL);
+    float PleasureCenterInitBal = 100.0f*NEURONINITBAL;
+//FIXME separate this from the neuronblock
+    bf->opencl_setv(BAL,&PleasureCenterInitBal,0,1);
+    BET0 = bf->gpu_malloc(BET0,NBSIZE,0);
+    BET1 = bf->gpu_malloc(BET1,NBSIZE,0);
+    W = bf->gpu_malloc(W,NBSIZE,0);
+    L = bf->gpu_malloc(L,NBSIZE,0);
+    if(VERBOSE) cout << "\t\tNB(x) created, state = " << state << endl;
+    */
+    NeuronBlock * MyNB = N.at(p/NBSIZE);
+    MyNB->init(p);
+        //Col  P,TMP,BAL,BET0,BET1,W,L; //float8
+}
+void NeuronBlock::init(int p){
+
+    float InitBal = (1.0f*NEURONINITBAL);
+    bf->opencl_setv(BAL,&InitBal,p,p+1);
+
+}
+
+
+void neural_map::initS(position p)
+{
+    /*
+    SINFO = bf->gpu_malloc(SINFO,SBSIZE,16);
+    SP0 = bf->gpu_malloc(SP0,SBSIZE,0.49);
+    SP1 = bf->gpu_malloc(SP1,SBSIZE,0.51);
+    STMP = bf->gpu_malloc(STMP,SBSIZE,0);
+    SP00 = bf->gpu_malloc(SP00,SBSIZE,0.49);
+    SP01 = bf->gpu_malloc(SP01,SBSIZE,0.51);
+    SP10 = bf->gpu_malloc(SP10,SBSIZE,0.51);
+    SP11 = bf->gpu_malloc(SP11,SBSIZE,0.49);
+    SP = bf->gpu_malloc(SP,SBSIZE,0.5);
+    SBAL = bf->gpu_malloc(SBAL,SBSIZE,SYNAPSINITBAL);
+    SBET0 = bf->gpu_malloc(SBET0,SBSIZE,0);
+    SBET1 = bf->gpu_malloc(SBET1,SBSIZE,0);
+    SW = bf->gpu_malloc(SW,SBSIZE,0);
+    if(VERBOSE) cout << "\t\tSB(" << position(x,y) << ") created, state = " << state << endl;
+    */
+    SynapsBlock * MySB = S.at(position(p.first/NBSIZE,p.second/NBSIZE));
+    MySB->init(p);
+}
+void SynapsBlock::init(position p){
+    float InitBal = (1.0f*SYNAPSINITBAL);
+    bf->opencl_setv(SBAL,&InitBal,p.first*NBSIZE + p.second,p.first*NBSIZE + p.second + 1);
+
+}
+
+/*
+Get the state of neurons and synapses at position
+*/
+void neural_map::stateN(size_t p)
+{
+    
+    NeuronBlock * MyNB = N.at(p/NBSIZE);
+    MyNB->printN(p);
+
+}
+
+void neural_map::stateS(position p)
+{
+    SynapsBlock * MySB = S.at(position(p.first/NBSIZE,p.second/NBSIZE));
+    MySB->printS(p);
+
+}
+
+/*
+Kill neurons and synapses at position
+*/
+void neural_map::killN(size_t p)
+{
+    
+    NeuronBlock * MyNB = N.at(p/NBSIZE);
+    MyNB->kill(p);
+
+}
+
+void neural_map::killS(position p)
+{
+
+    SynapsBlock * MySB = S.at(position(p.first/NBSIZE,p.second/NBSIZE));
+    MySB->kill(p);
+
+}
+
+void NeuronBlock::kill(int p){
+
+    
+    float DeadBal = (0.0f);
+    bf->opencl_setv(BAL,&DeadBal,p,p + 1);
+
+}
+
+void SynapsBlock::kill(position p){
+
+    float DeadBal = (0.0f);
+    bf->opencl_setv(SBAL,&DeadBal,p.first*NBSIZE + p.second,p.first*NBSIZE + p.second + 1);
+
+}
+
+float neural_map::Bal(){
+    return S.Bal() + N.Bal();
+}
+float Synapses::Bal(){
+    float ret = 0;
+    for(smap::iterator it = SB.begin(); it!=SB.end(); ++it)
+        ret += it->second->Bal();
+    return ret;
+}
+float Neurons::Bal(){
+    float ret = 0;
+    for(nmap::iterator it = N.begin(); it!=N.end(); ++it)
+        ret += it->second->Bal();
+    return ret;
+}
+float SynapsBlock::Bal(){
+    return bf->opencl_sum(SBAL,SBSIZE);
+}
+float NeuronBlock::Bal(){
+    return bf->opencl_sum(BAL,NBSIZE);
+}

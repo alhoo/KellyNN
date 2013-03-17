@@ -9,20 +9,12 @@ __kernel void synaps_die(
             if(i<w[8]){
                 SBAL[i] = 0.0;
                 SP1[i] = 0.0;
-/*
-                SBET0[i] = 0.0;
-                SBET1[i] = 0.0;
-*/
             }   
         }
         else{
             if(i%w[0] == w[6]){
                 SBAL[i] = 0.0;
                 SP1[i] = 0.0;
-/*
-                SBET0[i] = 0.0;
-                SBET1[i] = 0.0;
-*/
             }   
         }        
 /**        SBET1[i]    = SBAL[i]*SP1[i]/(2.23 - 7.91*log(SP[i]+0.03) );**/

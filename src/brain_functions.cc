@@ -11,7 +11,7 @@ opencl_brain_functions::~opencl_brain_functions(){
     clReleaseContext(ctx);
 }
 opencl_brain_functions::opencl_brain_functions(int w,int I,int O):w(w),I(I),O(O){
-    tmp = new cl_float[w*w];
+    tmp = new cl_float[max(w*w,128)];
     for(int i = 0; i < w*w; ++i) tmp[i]=1.0;
     cl_platform_id  platform;
     cl_uint ret_num_devices;
@@ -24,6 +24,7 @@ opencl_brain_functions::opencl_brain_functions(int w,int I,int O):w(w),I(I),O(O)
     queue = clCreateCommandQueue(ctx, device, 0, &err);
     print_opencl_error(err);
     assert(err == CL_SUCCESS);
+    assert(I+O < w - 1);
     world = gpu_malloc(world,128);
     long v[6] = {w,w*w,NEURONINITBAL,SYNAPSINITBAL,I,O};
     opencl_setv(world,&v[0],0,6);
@@ -71,11 +72,14 @@ void    opencl_brain_functions::opencl_pay_neuron(Col BAL,Col NW,Mat SW,int i,fl
     tmp[0] += v;
     opencl_setv(BAL,tmp,i,i+1);
     tmp[0] = (v>0)*2.0 - 1.0;
-    for(i = 0; i < I; ++i) tmp[i+1] = 1.0;
-    for(; i < w; ++i) tmp[i+1] = 0;
+//    for(i = 0; i < I; ++i) tmp[i+1] = 1.0;
+    i = 1;
+    for(; i < w; ++i) tmp[i] = 0;
     opencl_setv(NW,tmp,0,w);
-    for(i = 0; i < w; ++i) tmp[0] = (v>0)*2.0 - 1.0;
-    opencl_setv(SW,tmp,0,w);
+    i = 0;
+/*    for(; i < w; ++i) tmp[0] = (v>0)*2.0 - 1.0;*/
+    for(; i < w*w; ++i) tmp[i] = 0;
+    opencl_setv(SW,tmp,0,w*w);
 }
 
 void opencl_brain_functions::opencl_setv(Mat S,long *a,int start, int stop){
@@ -427,33 +431,52 @@ void opencl_brain_functions::print(Mat S, int p){
     opencl_getv(S,mtmp,0, p + 1);
     cout << mtmp[p] << endl;
 }
-void opencl_brain_functions::print(Mat S, int w, int h,bool l){
+void opencl_brain_functions::print(Mat S, int w, int h,int l){
     if(VERBOSE>1) cout << "\t\t\tprint(M)" << endl;
     if(DEBUG) {int quit = 0; cin >> quit; assert(quit);};
     if(VERBOSE>1) cout << (void *) S << "\t";
-    if(l){
+    if(l>0){
             long mtmp[w*h];
             opencl_getv(S,mtmp,0,w*h);
             for(int i = 0; i < h; ++i){
-                if(VERBOSE>1) cout << mtmp[i*w];
+                cout << "\t\t\t";
+                cout << mtmp[i*w];
                 for(int j = 1; j < w; ++j){
-                    if(VERBOSE>1) cout << "\t\t\t\t" << mtmp[i*w + j];
+                    cout << "\t" << mtmp[i*w + j];
                 }
-                if(VERBOSE>1) cout << endl;
-                if(i + 1 != h)
-                    if(VERBOSE>1) cout << "\t\t\t\t\t";
+                cout << endl;
             }
-    }else{
+    }else if(l < 0){
         cl_float mtmp[w*h];
         opencl_getv(S,mtmp,0,w*h);
         for(int i = 0; i < h; ++i){
-            if(VERBOSE>1) cout << mtmp[i*w];
+            if(mtmp[i*w] > 0)
+                cout << "\t" << "+";
+            else if(mtmp[i*w] < 0)
+                cout << "\t" << "-";
+            else
+                cout << "\t" << "•";
             for(int j = 1; j < w; ++j){
-                if(VERBOSE>1) cout << "\t\t\t\t" << mtmp[i*w + j];
+                if(mtmp[i*w + j] > 0)
+                    cout << " " << "+";
+                else if(mtmp[i*w + j] < 0)
+                    cout << " " << "-";
+                else
+                    cout << " " << "•";
             }
-            if(VERBOSE>1) cout << endl;
-            if(i + 1 != h)
-                if(VERBOSE>1) cout << "\t\t\t\t\t";
+            cout << endl;
+        }
+    }else{
+        cl_float mtmp[w*h];
+        opencl_getv(S,mtmp,0,w*h);
+        cout << setprecision(2);
+        for(int i = 0; i < h; ++i){
+            cout << "\t\t\t";
+            cout << setprecision(2) << mtmp[i*w];
+            for(int j = 1; j < w; ++j){
+                cout << "\t" << mtmp[i*w + j];
+            }
+            cout << endl;
         }
     }
 }

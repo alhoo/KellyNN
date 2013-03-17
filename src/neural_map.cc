@@ -15,6 +15,7 @@ neural_map::neural_map(size_t ni, size_t no):ni(ni),no(no),N(),S(&N)
         N.at(i);
         for(size_t j = 0; j < (ni+no+1)/NBSIZE + 1; ++j){
             S.at(position(i,j));
+            S.at(position(i,j))->print();
             //S.addBlock(new SynapsBlock(N.at(i),i,j),position(i,j));
 /*
             if(i*NBSIZE < ni){
@@ -39,8 +40,9 @@ neural_map::~neural_map()
 void neural_map::R(float a)
 {
    // set_neural_states(0,1,&a);
+//    S.at(position(0,0))->print();
     bf->opencl_pay_neuron(N.at(0)->BAL,N.at(0)->W,S.at(position(0,0))->SW,0,a);
-    S.at(position(0,0))->R(a);
+    S.at(position(0,0))->R();
 }
 
 void neural_map::I(float * I)
@@ -76,7 +78,7 @@ void neural_map::set_neural_states(size_t start, size_t l, float *A)
 
 position neural_map::get_highest_bid()
 {
-    S.update();
+//    S.update();
     return S.maxbid();
 }
 
@@ -166,7 +168,7 @@ seconds SynapsBlock::update()
     bf->opencl_synaps_bet(SBET1,SBAL,SP1,SP);
     bf->opencl_synaps_bet(SBET0,SBAL,SP0,SP);
 
-    //printS();
+//    print();
 
     bf->opencl_bet_sum(N->BET1,SBET1);
     bf->opencl_bet_sum(N->BET0,SBET0);
@@ -176,28 +178,29 @@ seconds SynapsBlock::update()
     return 1;
 }
 
-void SynapsBlock::R(float v){
-    //printW();
-    for(int i = 0; i< ITERS*(x==y) + 1; ++i){
+void SynapsBlock::R(){
+    for(int i = 0; i< ITERS + 1; ++i){
         bf->opencl_find_winning_synapses(SBET0,SBET1,N->BET0,N->BET1,N->W,SW);
-        //printW();
         bf->wait();
         bf->opencl_find_winning_neurons(N->W,SW);
-        //printW();
     }
+    cout << endl;
+    cout << endl;
+    cout << endl;
+    printW();
+    print();
 
-    bf->opencl_synaps_learn(SP11,SBET1,SBET0,SW,N->BET1,N->BET0,SINFO);
+    bf->opencl_synaps_learn(SP00,SBET0,SBET1,SW,N->BET0,N->BET1,SINFO);
     bf->opencl_synaps_learn(SP10,SBET1,SBET0,SW,N->BET0,N->BET1,SINFO);
     bf->opencl_synaps_learn(SP01,SBET0,SBET1,SW,N->BET1,N->BET0,SINFO);
-    bf->opencl_synaps_learn(SP00,SBET0,SBET1,SW,N->BET0,N->BET1,SINFO);
+    bf->opencl_synaps_learn(SP11,SBET1,SBET0,SW,N->BET1,N->BET0,SINFO);
 
     bf->opencl_synaps_learn2(SP,SW,SINFO);
 
     bf->opencl_update_synaps_info(SINFO);
 
-//    print();
     bf->opencl_pay(SBET0,SBET1,N->BET0,N->BET1,SBAL,N->BAL,SW,N->W);
-//    printS();
+//    print();
 }
 
 size_t SynapsBlock::size(){
@@ -298,6 +301,7 @@ SYNAPSES
 void Synapses::update()
 {
 
+    cerr << "FUNCTION NOT USED: " << __func__ << endl;
     if(VERBOSE) cout << "\tS::U()" << endl;
     if(VERBOSE) cout << "\tdone" << endl;
 
@@ -417,9 +421,9 @@ void Neurons::printN(){
 void SynapsBlock::printW(){
     cout << "\tSynapsBlock::W()" << endl;
     cout << "\t\tS.W" << endl;
-    bf->print(SW,NBSIZE,NBSIZE);
+    bf->print(SW,NBSIZE,NBSIZE,-1);
     cout << "\t\tN->W" << endl;
-    bf->print(N->W,NBSIZE,1);
+    bf->print(N->W,NBSIZE,1,-1);
 
     cout << "\t\tn : ";
     bf->print(SINFO,1,1);
@@ -433,8 +437,8 @@ void SynapsBlock::printS(position p){
 }
 void SynapsBlock::printS(){
     cout << "\tSynapsBlock::S()" << endl;
-    cout << "\t\tSBAL" << endl;
-    bf->print(SBAL,NBSIZE,NBSIZE);
+    cout << "\t\tSP" << endl;
+    bf->print(SP,NBSIZE,NBSIZE,-1);
 }
 void SynapsBlock::print(){
     cout << "\tSynapsBlock("<< bf->opencl_sum(N->BAL,NBSIZE) << " + " << bf->opencl_sum(SBAL,NBSIZE*NBSIZE) << " = " << bf->opencl_sum(N->BAL,NBSIZE) + bf->opencl_sum(SBAL,NBSIZE*NBSIZE) << ")" << endl;
@@ -442,6 +446,10 @@ void SynapsBlock::print(){
     bf->print(SP00,NBSIZE,NBSIZE);
     cout << "\t\tS.P01" << endl;
     bf->print(SP01,NBSIZE,NBSIZE);
+    cout << "\t\tS.P10" << endl;
+    bf->print(SP10,NBSIZE,NBSIZE);
+    cout << "\t\tS.P11" << endl;
+    bf->print(SP11,NBSIZE,NBSIZE);
     cout << "\t\tS.W" << endl;
     bf->print(SW,NBSIZE,NBSIZE);
     cout << "\t\tS.P"   << endl;
@@ -591,8 +599,14 @@ float Neurons::Bal(){
     return ret;
 }
 float SynapsBlock::Bal(){
-    return bf->opencl_sum(SBAL,SBSIZE);
+    float ret = bf->opencl_sum(SBAL,SBSIZE);
+//    ret += bf->opencl_sum(SBET0,SBSIZE);
+//    ret += bf->opencl_sum(SBET1,SBSIZE);
+    return ret;
 }
 float NeuronBlock::Bal(){
-    return bf->opencl_sum(BAL,NBSIZE);
+    float ret = bf->opencl_sum(BAL,NBSIZE);
+//    ret += bf->opencl_sum(BET0,NBSIZE);
+//    ret += bf->opencl_sum(BET1,NBSIZE);
+    return ret;
 }

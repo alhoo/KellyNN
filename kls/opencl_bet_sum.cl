@@ -8,7 +8,7 @@ __kernel void bet_sum(
     int i   = get_global_id(0);
     if( i < w[0] ){
         int iw  = i*w[0];
-        NBET[i] += SBET[iw];
+        NBET[i] = SBET[iw];
         for(int j = 1; j < w[0]; ++j){
             NBET[i]    += SBET[iw + j];
         }

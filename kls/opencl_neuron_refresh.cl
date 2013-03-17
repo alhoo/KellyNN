@@ -6,8 +6,6 @@ __kernel void neuron_refresh(
 ){
     int i   = get_global_id(0);
     if(i < w[0]){
-        if(NBET1[i] > 0 || NBET0[i] > 0){
-            NP[i]    = ((NBET1[i] + 1)/(NBET1[i] + NBET0[i] + 2));
-        }
+        NP[i]    = ((NBET1[i] + 1)/(NBET1[i] + NBET0[i] + 2));
     }
 }

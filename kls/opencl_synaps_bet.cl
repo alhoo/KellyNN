@@ -7,7 +7,7 @@ __kernel void synaps_bet(
 ){
     int i    	= get_global_id(0);
     if(i < w[1]){
-        SBET1[i]    = SBAL[i]*SP1[i]/(30.0 - 28.0*sqrt(SP[i]) );
-/**        SBET1[i]    = SBAL[i]*SP1[i]/(2.23405518909087 - 7.91829070671564*log(SP[i]+0.03) );**/
+//        SBET1[i]    = SBAL[i]*SP1[i]/(30.0 - 28.0*sqrt(SP[i]) );
+        SBET1[i]    = SBAL[i]*SP1[i]/(2.01 - 12*log(SP[i] + 0.0001) );
     }
 }

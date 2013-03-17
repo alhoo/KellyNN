@@ -7,7 +7,7 @@
 #include "brain_functions.h"
 #include "timer.hh"
 
-#define NBSIZE (32)
+#define NBSIZE (4)
 #define SBSIZE (NBSIZE*NBSIZE)
 #define ITERS 5
 
@@ -80,7 +80,7 @@ class SynapsBlock{
     void refresh();
     float setState(uint8_t s);
     public:
-        void R(float);
+        void R();
         Mat SW;
         SynapsBlock(NeuronBlock *N,size_t x,size_t y);
 //        SynapsBlock();

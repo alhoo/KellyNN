@@ -3,6 +3,7 @@
 #include <CL/cl.h>
 #include <iostream>
 #include <fstream>
+#include <iomanip>
 #include <glob.h>
 #include <vector>
 #include <cassert>
@@ -73,7 +74,7 @@ class opencl_brain_functions{
         void    opencl_fill(Mat,cl_float,int);
         cl_float    opencl_sum(Mat M, long l);
 
-        void    print(Mat S, int w, int h,bool l = 0);
+        void    print(Mat S, int w, int h,int l = 0);
         void    print(Mat S, int p);
 
 };

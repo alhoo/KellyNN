@@ -24,11 +24,23 @@ __kernel void find_winning_synapses(
         }
     }
     */
+/*
     if(i < w[0] && i != 1){
         int iw = i*w[0];
         float NWSign = NW[i]*sign(NBET0[i] - NBET1[i] - 0.00001);
         for(int j = 1; j < w[0]; ++j){
             SW[iw + j] = sign(SBET0[iw + j] - SBET1[iw + j] - 0.00001)*NWSign;
+        }
+    }
+    */
+    if(i < w[0]){
+        int iw = i*w[0];
+        float NWSign = NW[i]*sign(NBET0[i] - NBET1[i]);
+        for(int j = 1; j < w[0]; ++j){
+            if(sign(SBET0[iw + j] - SBET1[iw + j])*NWSign>0)
+                SW[iw + j] = 1;
+            else
+                SW[iw + j] = -1;
         }
     }
 }

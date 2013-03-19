@@ -7,7 +7,7 @@
 #include "brain_functions.h"
 #include "timer.hh"
 
-#define NBSIZE (4)
+#define NBSIZE (6)
 #define SBSIZE (NBSIZE*NBSIZE)
 #define ITERS 5
 
@@ -66,7 +66,7 @@ class NeuronBlock{
         void kill(int p);
         void init(int p);
         float setState(statetype s);
-        Col  P,TMP,BAL,BET0,BET1,W,L; //float8
+        Col  P,PI,TMP,BAL,BET0,BET1,W,L; //float8
         float Bal();
     private:
         statetype state;
@@ -93,6 +93,8 @@ class SynapsBlock{
         void printS();
         void printS(position);
         void printW();
+        void getBet(size_t start, size_t l, float *A);
+        void setBet(size_t start, size_t l, float *A);
         seconds update();
         seconds cost();
         seconds expected();
@@ -120,6 +122,8 @@ class    Synapses{
         Synapses(Neurons *N);
         SynapsBlock *at(position);
         void addBlock(SynapsBlock *S,position p);
+        void getBet(size_t start, size_t l, float *A);
+        void setBet(size_t start, size_t l, float *A);
         void update();
         position maxbid();
         float Bal();
@@ -132,6 +136,7 @@ class neural_map{
     Synapses S;
     void get_neural_states(size_t,size_t,float *);
     void set_neural_states(size_t,size_t,float *);
+    void set_neural_selfbets(long start,long length,float *I);
     position get_highest_bid();
     seconds update_synaps_map(seconds);
     public:
@@ -159,7 +164,8 @@ Kill neurons and synapses at position
         void killN(size_t);
         void killS(position);
 
-        void setIO(size_t niN,size_t noN){ ni = niN; no = noN; }
+        void setIO(size_t niN,size_t noN);//{ ni = niN; no = noN;}
+        //void setIO(size_t niN,size_t noN){ ni = niN; no = noN;}
 };
 
 #endif

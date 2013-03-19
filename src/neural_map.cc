@@ -13,9 +13,10 @@ neural_map::neural_map(size_t ni, size_t no):ni(ni),no(no),N(),S(&N)
     for(size_t i = 0; i < (ni+no+1)/NBSIZE + 1; ++i){
         //N.addBlock();
         N.at(i);
-        for(size_t j = 0; j < (ni+no+1)/NBSIZE + 1; ++j){
+//        S.at(position(i,0));
+        for(size_t j = ni+1; j < (ni+no+1)/NBSIZE + 1; ++j){
             S.at(position(i,j));
-            S.at(position(i,j))->print();
+//            S.at(position(i,j))->print();
             //S.addBlock(new SynapsBlock(N.at(i),i,j),position(i,j));
 /*
             if(i*NBSIZE < ni){
@@ -48,8 +49,34 @@ void neural_map::R(float a)
 void neural_map::I(float * I)
 {
     set_neural_states(1,ni,I);
+    /*
+    cout << "I:" << endl;
+    S.at(position(0,0))->print();
+    set_neural_selfbets(1,ni,I);
+    cout << "I2:" << endl;
+    S.at(position(0,0))->print();
+    */
 }
+/*
+void neural_map::set_neural_selfbets(long start,long length,float *I){
+    for(int i = start/NBSIZE; i < (start + length)/NBSIZE + 1; ++i){
+        cout << "updating position("<<i <<"," << i<< ")" << endl;
+    }
+}
+void SynapsBlock::getBet(size_t start, size_t l, float *A){
 
+}
+void Synapses::getBet(size_t start, size_t l, float *A){
+
+}
+void Synapses::setBet(size_t start, size_t l, float *A){
+
+}
+*/
+void neural_map::setIO(size_t niN,size_t noN){
+    ni = niN; no = noN;
+    bf->setIO(niN,noN);
+    }
 void neural_map::O(float * O)
 {
     get_neural_states(1 + ni,no,O);
@@ -99,7 +126,7 @@ SYNAPSBLOCK
 
 SynapsBlock::SynapsBlock(NeuronBlock *N,size_t i,size_t j):N(N),x(i),y(j),state(GPU)
 {
-    SINFO = bf->gpu_malloc(SINFO,SBSIZE,16);
+    SINFO = bf->gpu_malloc(SINFO,SBSIZE,1);
     SP0 = bf->gpu_malloc(SP0,SBSIZE,0.49);
     SP1 = bf->gpu_malloc(SP1,SBSIZE,0.51);
     STMP = bf->gpu_malloc(STMP,SBSIZE,0);
@@ -174,33 +201,38 @@ seconds SynapsBlock::update()
     bf->opencl_bet_sum(N->BET0,SBET0);
 
     bf->opencl_neuron_refresh(N->BET1,N->BET0,N->P);
-
+    bf->opencl_copy(N->P,N->PI);
     return 1;
 }
 
 void SynapsBlock::R(){
+    //cout << " ---- Start ----" << endl;
+    //print();
     for(int i = 0; i< ITERS + 1; ++i){
         bf->opencl_find_winning_synapses(SBET0,SBET1,N->BET0,N->BET1,N->W,SW);
         bf->wait();
-        bf->opencl_find_winning_neurons(N->W,SW);
+        bf->opencl_find_winning_neurons(N->W,SW,SBET0,SBET1);
     }
     cout << endl;
     cout << endl;
     cout << endl;
     printW();
-    print();
+    //print();
 
     bf->opencl_synaps_learn(SP00,SBET0,SBET1,SW,N->BET0,N->BET1,SINFO);
-    bf->opencl_synaps_learn(SP10,SBET1,SBET0,SW,N->BET0,N->BET1,SINFO);
+    bf->opencl_synaps_learn_negation(SP00,SP10);
+    //bf->opencl_synaps_learn(SP10,SBET1,SBET0,SW,N->BET0,N->BET1,SINFO);
     bf->opencl_synaps_learn(SP01,SBET0,SBET1,SW,N->BET1,N->BET0,SINFO);
-    bf->opencl_synaps_learn(SP11,SBET1,SBET0,SW,N->BET1,N->BET0,SINFO);
+    bf->opencl_synaps_learn_negation(SP01,SP11);
+    //bf->opencl_synaps_learn(SP11,SBET1,SBET0,SW,N->BET1,N->BET0,SINFO);
 
     bf->opencl_synaps_learn2(SP,SW,SINFO);
 
     bf->opencl_update_synaps_info(SINFO);
 
     bf->opencl_pay(SBET0,SBET1,N->BET0,N->BET1,SBAL,N->BAL,SW,N->W);
-//    print();
+    //print();
+    //cout << " ----- End -----" << endl;
 }
 
 size_t SynapsBlock::size(){
@@ -261,13 +293,15 @@ NeuronBlock::NeuronBlock():state(GPU)
     P = bf->gpu_malloc(P,NBSIZE,0.5);
     TMP = bf->gpu_malloc(TMP,NBSIZE);
     BAL = bf->gpu_malloc(BAL,NBSIZE,NEURONINITBAL);
-    float PleasureCenterInitBal = 100.0f*NEURONINITBAL;
+    float PleasureCenterInitBal = NEURONINITBAL;
+//    float PleasureCenterInitBal = 100.0f*NEURONINITBAL;
 //FIXME separate this from the neuronblock
     bf->opencl_setv(BAL,&PleasureCenterInitBal,0,1);
     BET0 = bf->gpu_malloc(BET0,NBSIZE,0);
     BET1 = bf->gpu_malloc(BET1,NBSIZE,0);
     W = bf->gpu_malloc(W,NBSIZE,0);
     L = bf->gpu_malloc(L,NBSIZE,0);
+    PI = bf->gpu_malloc(PI,NBSIZE,0);
     if(VERBOSE) cout << "\t\tNB(x) created, state = " << state << endl;
 }
 NeuronBlock::~NeuronBlock()
@@ -360,13 +394,13 @@ void Neurons::set(size_t start,int l,float *A)
     int i = start/NBSIZE;
     int j = start - NBSIZE*i;
 //    if(VERBOSE) cout << "\tNeurons[" << i << "]::P.set( " << j <<","<< min(j+l,NBSIZE) << ","<<(void *) A<<" )" << endl;
-    bf->opencl_setv(N.at(i)->P,A,j,min(j+l,NBSIZE));
+    bf->opencl_setv(N.at(i)->PI,A,j,min(j+l,NBSIZE));
 
     l -= (NBSIZE - j);
     A += (NBSIZE - j);
     for(++i; l > 0; ++i){
 //        if(VERBOSE) cout << "\tNeurons[" << i << "]::P.set( " << 0 <<","<< min(j+l,NBSIZE) << ","<<(void *) A<<" )" << endl;
-        bf->opencl_setv(N.at(i)->P,A,0,min(l,NBSIZE));
+        bf->opencl_setv(N.at(i)->PI,A,0,min(l,NBSIZE));
         l -= NBSIZE;
         A += NBSIZE;
     }
@@ -417,6 +451,10 @@ void Neurons::printN(){
     bf->print(N[0]->P,NBSIZE,1);
     cout << "\t\tN->BAL" << endl;
     bf->print(N[0]->BAL,NBSIZE,1);
+    cout << "\t\tN->BET1" << endl;
+    bf->print(N[0]->BET1,NBSIZE,1);
+    cout << "\t\tN->BET0" << endl;
+    bf->print(N[0]->BET0,NBSIZE,1);
 }
 void SynapsBlock::printW(){
     cout << "\tSynapsBlock::W()" << endl;

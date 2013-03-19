@@ -82,6 +82,18 @@ void    opencl_brain_functions::opencl_pay_neuron(Col BAL,Col NW,Mat SW,int i,fl
     opencl_setv(SW,tmp,0,w*w);
 }
 
+void opencl_brain_functions::opencl_copy(Mat A,Mat B){
+    clSetKernelArg(kernels.at(__func__), 0, sizeof(cl_mem), (void *)&A);
+    clSetKernelArg(kernels.at(__func__), 1, sizeof(cl_mem), (void *)&B);
+    clSetKernelArg(kernels.at(__func__), 2, sizeof(cl_mem), (void *)&world);
+    size_t global_item_size = I+1;
+    size_t local_item_size = 1;
+    err = clEnqueueNDRangeKernel(queue, kernels.at(__func__), 1, NULL, &global_item_size,
+            &local_item_size, 0, NULL, &event);
+    assert(err == CL_SUCCESS);
+    wait();
+
+}
 void opencl_brain_functions::opencl_setv(Mat S,long *a,int start, int stop){
     assert(start < stop);
     err = clEnqueueWriteBuffer(queue, S, CL_TRUE, start*sizeof(long),
@@ -208,11 +220,13 @@ void opencl_brain_functions::opencl_neuron_refresh(Col NBET0,Col NBET1,Col NP)
     wait();
 }
 
-void opencl_brain_functions::opencl_find_winning_neurons(Col NW,Mat SW){
+void opencl_brain_functions::opencl_find_winning_neurons(Col NW,Mat SW,Mat SBET0,Mat SBET1){
     if(VERBOSE>1) cout << "kernel[" << __func__ << "]<" << endl;
     clSetKernelArg(kernels.at(__func__), 0, sizeof(cl_mem), (void *)&NW);
     clSetKernelArg(kernels.at(__func__), 1, sizeof(cl_mem), (void *)&SW);
-    clSetKernelArg(kernels.at(__func__), 2, sizeof(cl_mem), (void *)&world);
+    clSetKernelArg(kernels.at(__func__), 2, sizeof(cl_mem), (void *)&SBET0);
+    clSetKernelArg(kernels.at(__func__), 3, sizeof(cl_mem), (void *)&SBET1);
+    clSetKernelArg(kernels.at(__func__), 4, sizeof(cl_mem), (void *)&world);
     size_t global_item_size = w;
     size_t local_item_size = 1;
     err = clEnqueueNDRangeKernel(queue, kernels.at(__func__), 1, NULL, &global_item_size,
@@ -259,6 +273,19 @@ void opencl_brain_functions::opencl_synaps_learn(Mat SP00,Mat SBET0,Mat SBET1,Ma
             &local_item_size, 0, NULL, &event);
     assert(err == CL_SUCCESS);
     wait();
+}
+void opencl_brain_functions::opencl_synaps_learn_negation(Mat SP1, Mat SP0){
+    if(VERBOSE>1) cout << "kernel[" << __func__ << "]" << endl;
+    clSetKernelArg(kernels.at(__func__), 0, sizeof(cl_mem), (void *)&SP1);
+    clSetKernelArg(kernels.at(__func__), 1, sizeof(cl_mem), (void *)&SP0);
+    clSetKernelArg(kernels.at(__func__), 2, sizeof(cl_mem), (void *)&world);
+    size_t global_item_size = w*w;
+    size_t local_item_size = 1;
+    err = clEnqueueNDRangeKernel(queue, kernels.at(__func__), 1, NULL, &global_item_size,
+            &local_item_size, 0, NULL, &event);
+    assert(err == CL_SUCCESS);
+    wait();
+
 }
 void opencl_brain_functions::opencl_synaps_learn2(Mat SP,Mat SW,Col SINFO)
 {
@@ -373,6 +400,7 @@ void opencl_brain_functions::init_kernel(string filename){
 
 //    kernels[i] = clCreateKernel( clPgrm, kernelname.c_str(), &err);
     kernels[filename.substr(4,filename.length() - 7)] = clCreateKernel( clPgrm, kernelname.c_str(), &err);
+    cout << "creating '" << filename.substr(4,filename.length() - 7) << "' kernel;" << endl;
 
     print_opencl_error(err);
 

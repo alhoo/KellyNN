@@ -206,8 +206,8 @@ seconds SynapsBlock::update()
 }
 
 void SynapsBlock::R(){
-    //cout << " ---- Start ----" << endl;
-    //print();
+    cout << " ---- Start ----" << endl;
+    print();
     for(int i = 0; i< ITERS + 1; ++i){
         bf->opencl_find_winning_synapses(SBET0,SBET1,N->BET0,N->BET1,N->W,SW);
         bf->wait();
@@ -217,8 +217,8 @@ void SynapsBlock::R(){
     cout << endl;
     cout << endl;
     printW();
-    //print();
-
+    print();
+    cout << " ---- Learn ----" << endl;
     bf->opencl_synaps_learn(SP00,SBET0,SBET1,SW,N->BET0,N->BET1,SINFO);
     bf->opencl_synaps_learn_negation(SP00,SP10);
     //bf->opencl_synaps_learn(SP10,SBET1,SBET0,SW,N->BET0,N->BET1,SINFO);
@@ -231,8 +231,8 @@ void SynapsBlock::R(){
     bf->opencl_update_synaps_info(SINFO);
 
     bf->opencl_pay(SBET0,SBET1,N->BET0,N->BET1,SBAL,N->BAL,SW,N->W);
-    //print();
-    //cout << " ----- End -----" << endl;
+    print();
+    cout << " ----- End -----" << endl;
 }
 
 size_t SynapsBlock::size(){
@@ -480,10 +480,10 @@ void SynapsBlock::printS(){
 }
 void SynapsBlock::print(){
     cout << "\tSynapsBlock("<< bf->opencl_sum(N->BAL,NBSIZE) << " + " << bf->opencl_sum(SBAL,NBSIZE*NBSIZE) << " = " << bf->opencl_sum(N->BAL,NBSIZE) + bf->opencl_sum(SBAL,NBSIZE*NBSIZE) << ")" << endl;
-    cout << "\t\tS.P00" << endl;
-    bf->print(SP00,NBSIZE,NBSIZE);
-    cout << "\t\tS.P01" << endl;
-    bf->print(SP01,NBSIZE,NBSIZE);
+    //cout << "\t\tS.P00" << endl;
+    //bf->print(SP00,NBSIZE,NBSIZE);
+    //cout << "\t\tS.P01" << endl;
+    //bf->print(SP01,NBSIZE,NBSIZE);
     cout << "\t\tS.P10" << endl;
     bf->print(SP10,NBSIZE,NBSIZE);
     cout << "\t\tS.P11" << endl;

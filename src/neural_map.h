@@ -73,7 +73,7 @@ class NeuronBlock{
 };
 class SynapsBlock{
     Mat SINFO,SP0,SP1,STMP,SP00,SP01,SP10,SP11,SP,SBAL,SBET0,SBET1; //float16
-    NeuronBlock *N;
+    NeuronBlock *To, *From;
     size_t x,y;
     statetype state;
     size_t size();
@@ -82,7 +82,7 @@ class SynapsBlock{
     public:
         void R();
         Mat SW;
-        SynapsBlock(NeuronBlock *N,size_t x,size_t y);
+        SynapsBlock(NeuronBlock *To, NeuronBlock *From,size_t x,size_t y);
 //        SynapsBlock();
         ~SynapsBlock();
         //void R();
@@ -118,6 +118,7 @@ typedef map<position, SynapsBlock *> smap;
 class    Synapses{
     smap SB;
     Neurons  *N;
+    int state;
     public:
         Synapses(Neurons *N);
         SynapsBlock *at(position);
@@ -131,7 +132,8 @@ class    Synapses{
 
 
 class neural_map{
-    size_t ni, no;
+    size_t np, ni, no, nc;
+    size_t nbp, nbi, nbo, nbc;
     Neurons  N;
     Synapses S;
     void get_neural_states(size_t,size_t,float *);
@@ -140,7 +142,7 @@ class neural_map{
     position get_highest_bid();
     seconds update_synaps_map(seconds);
     public:
-        neural_map(size_t ni, size_t no);
+        neural_map(size_t np, size_t ni, size_t no, size_t nc = 1);
         ~neural_map();
         void R(float a);
         void I(float * I);

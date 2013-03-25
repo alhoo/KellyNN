@@ -72,12 +72,13 @@ class opencl_brain_functions{
         void    opencl_synaps_learn2(Mat,Mat,Col);
         void    opencl_pay(Mat,Mat,Col,Col,Mat,Col,Mat,Col);
         float   opencl_get_bal(Col,Mat,Col,Col);
-        void    opencl_pay_neuron(Col,Col,Mat,int,float);
+        void    opencl_pay_neuron(Col,Col,int,float);
         void    opencl_synaps_die(Mat,Mat,long s, long v, long l);
         void    opencl_fill(Mat,cl_float,int);
         cl_float    opencl_sum(Mat M, long l);
 
         void    print(Mat S, int w, int h,int l = 0);
+        void    printW(Col T, Col F, Mat S, int w, Col I);
         void    print(Mat S, int p);
 
 };

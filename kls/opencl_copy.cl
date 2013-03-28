@@ -4,7 +4,7 @@ __kernel void copy(
     __global const long *w
 ){
     int i   = get_global_id(0);
-    if( i < w[1] && i > 0){
+    if( i < w[1]){
         //S[i] = STMP[i];
         A[i] = B[i];
     }

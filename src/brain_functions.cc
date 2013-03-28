@@ -67,26 +67,27 @@ float   opencl_brain_functions::opencl_get_bal(Col N,Mat S,Col NB1, Col NB0){
     return ret;
 }
 
-void    opencl_brain_functions::opencl_pay_neuron(Col BAL,Col NW,Mat SW,int i,float v){
+void    opencl_brain_functions::opencl_pay_neuron(Col BAL,Col NW,int i,float v){
     opencl_getv(BAL,tmp,i,i+1);
     tmp[0] += v;
     opencl_setv(BAL,tmp,i,i+1);
-    tmp[0] = (v>0)*2.0 - 1.0;
 //    for(i = 0; i < I; ++i) tmp[i+1] = 1.0;
-    i = 1;
-    for(; i < w; ++i) tmp[i] = 0;
+    int j = 0;
+    for(; j < w; ++j) tmp[j] = 0;
+    tmp[i] = (v>0)*2.0 - 1.0;
     opencl_setv(NW,tmp,0,w);
-    i = 0;
-/*    for(; i < w; ++i) tmp[0] = (v>0)*2.0 - 1.0;*/
-    for(; i < w*w; ++i) tmp[i] = 0;
+    
+    /*  
+    for(j = 0; j < w*w; ++j) tmp[j] = 0;
     opencl_setv(SW,tmp,0,w*w);
+    */
 }
 
 void opencl_brain_functions::opencl_copy(Mat A,Mat B){
     clSetKernelArg(kernels.at(__func__), 0, sizeof(cl_mem), (void *)&A);
     clSetKernelArg(kernels.at(__func__), 1, sizeof(cl_mem), (void *)&B);
     clSetKernelArg(kernels.at(__func__), 2, sizeof(cl_mem), (void *)&world);
-    size_t global_item_size = I+1;
+    size_t global_item_size = w;
     size_t local_item_size = 1;
     err = clEnqueueNDRangeKernel(queue, kernels.at(__func__), 1, NULL, &global_item_size,
             &local_item_size, 0, NULL, &event);
@@ -458,6 +459,28 @@ void opencl_brain_functions::print(Mat S, int p){
     float mtmp[p + 1];
     opencl_getv(S,mtmp,0, p + 1);
     cout << mtmp[p] << endl;
+}
+string winprint(float v){
+    if(v>0) return "+";
+    if(v<0) return "-";
+    return "•";
+}
+void opencl_brain_functions::printW(Col T, Col F, Mat S, int w, Col I){
+    float mtmp[(w + 2)*(w)];
+    opencl_getv(F,mtmp,0, w);
+    opencl_getv(T,mtmp + (w),0, w);
+    opencl_getv(S,mtmp + 2*w,0, w*w);
+    cout << " ";
+    for(int i = 0; i < w; ++i)
+        cout << winprint(mtmp[i]);
+    cout << endl;
+    for(int i = 0; i < w; ++i){
+        cout << winprint(mtmp[w+i]);
+        for(int j = 0; j < w; ++j){
+            cout << winprint(mtmp[2*w + i*w + j]);
+        }
+        cout << endl;
+    }
 }
 void opencl_brain_functions::print(Mat S, int w, int h,int l){
     if(VERBOSE>1) cout << "\t\t\tprint(M)" << endl;

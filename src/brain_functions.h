@@ -3,6 +3,7 @@
 #include <CL/cl.h>
 #include <iostream>
 #include <fstream>
+#include <sstream>
 #include <iomanip>
 #include <glob.h>
 #include <vector>
@@ -67,7 +68,7 @@ class opencl_brain_functions{
         void    opencl_find_winning_synapses(Mat,Mat,Col,Col,Col,Mat);
         void    opencl_find_winning_neurons(Col,Mat,Mat,Mat);
         void    opencl_update_synaps_info(Col);
-        void    opencl_synaps_learn(Mat,Mat,Mat,Mat,Col,Col,Col);
+        void    opencl_synaps_learn(Mat,Mat,Mat,Mat,Mat,Mat,Mat,Col,Col,Col);
         void    opencl_synaps_learn_negation(Mat SP1, Mat SP0);
         void    opencl_synaps_learn2(Mat,Mat,Col);
         void    opencl_pay(Mat,Mat,Col,Col,Mat,Col,Mat,Col);
@@ -77,8 +78,8 @@ class opencl_brain_functions{
         void    opencl_fill(Mat,cl_float,int);
         cl_float    opencl_sum(Mat M, long l);
 
-        void    print(Mat S, int w, int h,int l = 0);
-        void    printW(Col T, Col F, Mat S, int w, Col I);
+        void    print(Mat S, int w, int h,int l = 0, char * A = NULL);
+        void    printW(Col T, Col F, Mat S, int w, Col I, char * A = NULL, bool n = 1);
         void    print(Mat S, int p);
 
 };

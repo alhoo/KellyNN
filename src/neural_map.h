@@ -3,11 +3,12 @@
 #include <iostream>
 #include <map>
 #include <vector>
+#include <fstream>
 #include <CL/cl.h>
 #include "brain_functions.h"
 #include "timer.hh"
 
-#define NBSIZE (6)
+#define NBSIZE (3)
 #define SBSIZE (NBSIZE*NBSIZE)
 #define ITERS 5
 
@@ -92,6 +93,7 @@ class SynapsBlock{
         void print();
         void printS();
         void printS(position);
+        void printW(char *,bool n = 1);
         void printW();
         void getBet(size_t start, size_t l, float *A);
         void setBet(size_t start, size_t l, float *A);
@@ -111,6 +113,7 @@ class    Neurons{
         void printN();
         void get(size_t start,int l,float *A);
         void set(size_t start,int l,float *A);
+        void setWin(size_t start,int l);
         float Bal();
 };
 
@@ -138,6 +141,7 @@ class neural_map{
     Synapses S;
     void get_neural_states(size_t,size_t,float *);
     void set_neural_states(size_t,size_t,float *);
+    void set_neural_win(size_t,size_t);
     void set_neural_selfbets(long start,long length,float *I);
     position get_highest_bid();
     seconds update_synaps_map(seconds);
@@ -149,6 +153,7 @@ class neural_map{
         void O(float * O);
         void U(seconds t);
 //For testing the library:
+        void printW();
         float Bal();
 /*
 Initialize neurons and synapses at position

@@ -37,10 +37,14 @@ __kernel void find_winning_synapses(
         int iw = i*w[0];
         float NWSign = NW[i]*sign(NBET0[i] - NBET1[i]);
         for(int j = 0; j < w[0]; ++j){
-            if(sign(SBET0[iw + j] - SBET1[iw + j])*NWSign>0)
+//            SW[iw + j] = sign(SBET0[iw + j] - SBET1[iw + j])*NWSign;
+            if(SBET0[iw + j] + SBET1[iw + j] == 0)
+                SW[iw + j] = 0;
+            else if(sign(SBET0[iw + j] - SBET1[iw + j])*NWSign>0)
                 SW[iw + j] = 1;
             else
                 SW[iw + j] = -1;
+                
         }
     }
 }

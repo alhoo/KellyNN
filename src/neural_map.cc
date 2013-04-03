@@ -1,7 +1,8 @@
 #include "neural_map.h"
 
 ofstream logfile("latest.log");
-#define LOG logfile << "INFO: " << __FILE__ << ":" << __LINE__ << " " << __func__ << "() : "
+//#define LOG logfile << "INFO: " << __FILE__ << ":" << __LINE__ << " " << __func__ << "() : "
+#define LOG cout
 
 opencl_brain_functions *bf;
 
@@ -16,10 +17,10 @@ neural_map::neural_map(size_t np, size_t ni, size_t no, size_t nc)
 
     LOG << "Initializing neural map" << endl;
 
-    nbp=np/NBSIZE + 1;
-    nbi=ni/NBSIZE + 1;
-    nbo=no/NBSIZE + 1;
-    nbc=nc/NBSIZE + 1;
+    nbp=(np - 1)/NBSIZE + 1;
+    nbi=(ni - 1)/NBSIZE + 1;
+    nbo=(no - 1)/NBSIZE + 1;
+    nbc=(nc - 1)/NBSIZE + 1;
     bf = new opencl_brain_functions(NBSIZE,ni,no);
     size_t i = 0;
     for(; i < nbp; ++i){
@@ -75,14 +76,23 @@ void neural_map::R(float a)
     S.at(position(2,1))->R();
     S.at(position(2,3))->R();
     S.at(position(3,1))->R();
-    printW();
+    print();
 }
 
 void neural_map::I(float * I)
 {
     LOG << "Setting inputs from a vector" << endl;
-    set_neural_win(1,ni);
-    set_neural_states(1,ni,I);
+    set_neural_win(0,ni);
+    set_neural_states(0,ni,I);
+
+    LOG << "Input values: ";
+    float TMP[NBSIZE];
+    bf->opencl_getv(N.at(1)->P,TMP,0,NBSIZE);
+    for(int x = 0; x < NBSIZE; ++x) 
+        LOG << setw(6) << TMP[x];
+    LOG << endl;
+
+    print();
 }
 void neural_map::setIO(size_t niN,size_t noN){
     LOG << "Setting number of in- and outputs" << endl;
@@ -92,7 +102,14 @@ void neural_map::setIO(size_t niN,size_t noN){
 void neural_map::O(float * O)
 {
     LOG << "Setting outputs to a vector" << endl;
-    get_neural_states(1 + ni,no,O);
+    get_neural_states(0,no,O);
+    LOG << "Output values: ";
+    float TMP[NBSIZE];
+    bf->opencl_getv(N.at(2)->P,TMP,0,NBSIZE);
+    for(int x = 0; x < NBSIZE; ++x) 
+        LOG << setw(6) << TMP[x];
+    LOG << endl;
+    print();
 }
 
 void neural_map::U(seconds t)
@@ -102,6 +119,7 @@ void neural_map::U(seconds t)
     while(a - now() > 0){
         update_synaps_map(a - now());
     }
+    print();
 }
 void neural_map::get_neural_states(size_t start, size_t l, float *A)
 {
@@ -113,11 +131,14 @@ void neural_map::get_neural_states(size_t start, size_t l, float *A)
 void neural_map::set_neural_win(size_t start, size_t l)
 {
     LOG << "Setting neurons as winners" << endl;
+    start = start + (nbp)*NBSIZE;
     N.setWin(start,l);
 }
 void neural_map::set_neural_states(size_t start, size_t l, float *A)
 {
     LOG << "Setting neural states from a variable" << endl;
+    start = start + (nbp)*NBSIZE;
+    LOG << "setting neurons from " << start << " to " << start + l << endl;
     N.set(start,l,A);
 }
 
@@ -168,11 +189,9 @@ SynapsBlock::SynapsBlock(NeuronBlock *To,NeuronBlock *From,size_t i,size_t j)
     SBET0 = bf->gpu_malloc(SBET0,SBSIZE,0);
     SBET1 = bf->gpu_malloc(SBET1,SBSIZE,0);
     SW = bf->gpu_malloc(SW,SBSIZE,0);
-    printS();
 }
 SynapsBlock::~SynapsBlock(){
     LOG << "Freeing a synapsblock" << endl;
-    printS();
     bf->gpu_free(SINFO);
     bf->gpu_free(SP0);
     bf->gpu_free(SP1);
@@ -196,7 +215,6 @@ seconds SynapsBlock::update()
 {
 //    seconds d = timeOfCost(cost());
     LOG << "Updating synapsblock" << endl;
-    printS();
 
     if(state != GPU)
 	if(DEBUG>1) cerr << "\t\timplement moving to GPU" << endl;
@@ -213,13 +231,11 @@ seconds SynapsBlock::update()
     bf->opencl_bet_sum(To->BET0,SBET0);
 
     bf->opencl_neuron_refresh(To->BET1,To->BET0,To->P);
-    printS();
     return 1;
 }
 
 void SynapsBlock::R(){
     LOG << "Adding value to synapsblock" << endl;
-    printS();
     for(int i = 0; i< ITERS + 1; ++i){
         bf->opencl_find_winning_synapses(SBET0,SBET1,To->BET0,
                 To->BET1,To->W,SW);
@@ -234,7 +250,6 @@ void SynapsBlock::R(){
     bf->opencl_update_synaps_info(SINFO);
 
     bf->opencl_pay(SBET0,SBET1,To->BET0,To->BET1,SBAL,To->BAL,SW,To->W);
-    printS();
 }
 
 size_t SynapsBlock::size(){
@@ -270,6 +285,7 @@ SynapsBlock *Synapses::at(position p)
 {
 	if(SB.find(p) == SB.end())
     {
+        LOG << "Synapsblock not found" << endl;
         SB.insert(pair<position,SynapsBlock*>(p,new SynapsBlock(N->at(p.first),
             N->at(p.second),p.first,p.second)));
     }
@@ -305,12 +321,10 @@ NeuronBlock::NeuronBlock():state(GPU)
     W = bf->gpu_malloc(W,NBSIZE,0);
     L = bf->gpu_malloc(L,NBSIZE,0);
     PI = bf->gpu_malloc(PI,NBSIZE,0);
-    printN();
 }
 NeuronBlock::~NeuronBlock()
 {
     LOG << "Removing a neuronblock" << endl;
-    printN();
     bf->gpu_free(P);
     bf->gpu_free(TMP);
     bf->gpu_free(BAL);
@@ -423,12 +437,14 @@ void Neurons::set(size_t start,int l,float *A)
     LOG << "Setting neuron probability values" << endl;
     int i = start/NBSIZE;
     int j = start%NBSIZE;
+    LOG << "Setting probability on block " << i << " from " << j << " to " << min(j+l,NBSIZE) << endl;
     assert(j == start - NBSIZE*i);
     bf->opencl_setv(N.at(i)->P,A,j,min(j+l,NBSIZE));
 
     l -= (NBSIZE - j);
     A += (NBSIZE - j);
     for(++i; l > 0; ++i){
+        LOG << "Setting probability on block " << i << " from " << 0 << " to " << min(l,NBSIZE) << endl;
         bf->opencl_setv(N.at(i)->P,A,0,min(l,NBSIZE));
         l -= NBSIZE;
         A += NBSIZE;
@@ -461,18 +477,18 @@ seconds timeOfIncome(float income_neur){
 seconds timeOfCost(float income_snt){ 
     return timeOfIncome(income_snt);
 }
-
+/*
 void NeuronBlock::printN(){
     LOG << "NeuronBlock::N()" << endl;
-    char A[NBSIZE];
-    bf->print(P,NBSIZE,1,0,A);
+    char A[1];
     LOG << "N.P: " << A << endl;
-    bf->print(BAL,NBSIZE,1,0,A);
+    LOG << bf->print(P,NBSIZE,1,0,A);
     LOG << "N->BAL: " << A << endl;
-    bf->print(BET1,NBSIZE,1,0,A);
+    LOG << bf->print(BAL,NBSIZE,1,0,A);
     LOG << "N->BET1: " << A << endl;
-    bf->print(BET0,NBSIZE,1,0,A);
+    LOG << bf->print(BET1,NBSIZE,1,0,A);
     LOG << "N->BET0: " << A << endl;
+    LOG << bf->print(BET0,NBSIZE,1,0,A);
 }
 
 void NeuronBlock::printN(int p){
@@ -540,10 +556,9 @@ void SynapsBlock::printS(position p){
 }
 void SynapsBlock::printS(){
     LOG << "\tSynapsBlock::S()" << endl;
-    char A[SBSIZE];
-    bf->print(SP,NBSIZE,NBSIZE,0,A);
+    char A[1];
     LOG << "\t\tSP" << endl;
-    LOG << A << endl;
+    LOG << bf->print(SP,NBSIZE,NBSIZE,0,A);
 }
 void SynapsBlock::print(){
     cout << "\tSynapsBlock("<< bf->opencl_sum(From->BAL,NBSIZE) << " + " 
@@ -577,6 +592,146 @@ void SynapsBlock::print(){
     cout << "\t\tn"     << endl;
     bf->print(SINFO,1,1);
 }
+*/
+void log_nm(float *NB, int bc){
+    LOG << setprecision(4);
+    for(int x = 0; x < bc*NBSIZE; ++x)
+        LOG << setw(7) << NB[x];
+    LOG << endl;
+    for(int x = 0; x < bc*NBSIZE; ++x){
+        for(int y = 0; y < bc*NBSIZE; ++y)
+            LOG << setw(7) << NB[bc*NBSIZE + x + y*bc*NBSIZE];
+        LOG << endl;
+    }
+}
+void neural_map::print(){
+    printW();
+    printP00();
+    printP01();
+    printP();
+    printBal();
+    printBet1();
+    printBet0();
+    }
+void neural_map::printBet1(){
+    LOG << "              ----  " << __func__ << " ----"  << endl;
+    unsigned int bc = (nbp + nbi + nbo + nbc);
+    float NB[(bc*NBSIZE)*(bc*NBSIZE + 1)];
+    float TMP[(SBSIZE)];
+
+    for(int i = 0; i < bc; ++i){
+        bf->opencl_getv(N.at(i)->BET1,&NB[i*NBSIZE],0,NBSIZE);
+        for(int j = 0; j < bc; ++j){
+            bf->opencl_getv(S.at(position(i,j))->SBET1,TMP,0,SBSIZE);
+            for(int x = 0; x < NBSIZE; ++x)
+                for(int y = 0; y < NBSIZE; ++y)
+                    NB[bc*NBSIZE + i*NBSIZE + (j*NBSIZE + y)*bc*NBSIZE + x] = TMP[x + y*NBSIZE];
+        }
+    }
+    log_nm(NB,bc);
+}
+void neural_map::printW(){
+    LOG << "              ----  " << __func__ << " ----"  << endl;
+    unsigned int bc = (nbp + nbi + nbo + nbc);
+    float NB[(bc*NBSIZE)*(bc*NBSIZE + 1)];
+    float TMP[(SBSIZE)];
+
+    for(int i = 0; i < bc; ++i){
+        bf->opencl_getv(N.at(i)->W,&NB[i*NBSIZE],0,NBSIZE);
+        for(int j = 0; j < bc; ++j){
+            bf->opencl_getv(S.at(position(i,j))->SW,TMP,0,SBSIZE);
+            for(int x = 0; x < NBSIZE; ++x)
+                for(int y = 0; y < NBSIZE; ++y)
+                    NB[bc*NBSIZE + i*NBSIZE + (j*NBSIZE + y)*bc*NBSIZE + x] = TMP[x + y*NBSIZE];
+        }
+    }
+    log_nm(NB,bc);
+}
+void neural_map::printP00(){
+    LOG << "              ----  " << __func__ << " ----"  << endl;
+    unsigned int bc = (nbp + nbi + nbo + nbc);
+    float NB[(bc*NBSIZE)*(bc*NBSIZE + 1)];
+    float TMP[(SBSIZE)];
+
+    for(int i = 0; i < bc; ++i){
+        bf->opencl_getv(N.at(i)->P,&NB[i*NBSIZE],0,NBSIZE);
+        for(int j = 0; j < bc; ++j){
+            bf->opencl_getv(S.at(position(i,j))->SP00,TMP,0,SBSIZE);
+            for(int x = 0; x < NBSIZE; ++x)
+                for(int y = 0; y < NBSIZE; ++y)
+                    NB[bc*NBSIZE + i*NBSIZE + (j*NBSIZE + y)*bc*NBSIZE + x] = TMP[x + y*NBSIZE];
+        }
+    }
+    log_nm(NB,bc);
+}
+void neural_map::printP01(){
+    LOG << "              ----  " << __func__ << " ----"  << endl;
+    unsigned int bc = (nbp + nbi + nbo + nbc);
+    float NB[(bc*NBSIZE)*(bc*NBSIZE + 1)];
+    float TMP[(SBSIZE)];
+
+    for(int i = 0; i < bc; ++i){
+        bf->opencl_getv(N.at(i)->P,&NB[i*NBSIZE],0,NBSIZE);
+        for(int j = 0; j < bc; ++j){
+            bf->opencl_getv(S.at(position(i,j))->SP01,TMP,0,SBSIZE);
+            for(int x = 0; x < NBSIZE; ++x)
+                for(int y = 0; y < NBSIZE; ++y)
+                    NB[bc*NBSIZE + i*NBSIZE + (j*NBSIZE + y)*bc*NBSIZE + x] = TMP[x + y*NBSIZE];
+        }
+    }
+    log_nm(NB,bc);
+}
+void neural_map::printBet0(){
+    LOG << "              ----  " << __func__ << " ----"  << endl;
+    unsigned int bc = (nbp + nbi + nbo + nbc);
+    float NB[(bc*NBSIZE)*(bc*NBSIZE + 1)];
+    float TMP[(SBSIZE)];
+
+    for(int i = 0; i < bc; ++i){
+        bf->opencl_getv(N.at(i)->BET0,&NB[i*NBSIZE],0,NBSIZE);
+        for(int j = 0; j < bc; ++j){
+            bf->opencl_getv(S.at(position(i,j))->SBET0,TMP,0,SBSIZE);
+            for(int x = 0; x < NBSIZE; ++x)
+                for(int y = 0; y < NBSIZE; ++y)
+                    NB[bc*NBSIZE + i*NBSIZE + (j*NBSIZE + y)*bc*NBSIZE + x] = TMP[x + y*NBSIZE];
+        }
+    }
+    log_nm(NB,bc);
+}
+void neural_map::printBal(){
+    LOG << "              ----  " << __func__ << " ----"  << endl;
+    unsigned int bc = (nbp + nbi + nbo + nbc);
+    float NB[(bc*NBSIZE)*(bc*NBSIZE + 1)];
+    float TMP[(SBSIZE)];
+
+    for(int i = 0; i < bc; ++i){
+        bf->opencl_getv(N.at(i)->BAL,&NB[i*NBSIZE],0,NBSIZE);
+        for(int j = 0; j < bc; ++j){
+            bf->opencl_getv(S.at(position(i,j))->SBAL,TMP,0,SBSIZE);
+            for(int x = 0; x < NBSIZE; ++x)
+                for(int y = 0; y < NBSIZE; ++y)
+                    NB[bc*NBSIZE + i*NBSIZE + (j*NBSIZE + y)*bc*NBSIZE + x] = TMP[x + y*NBSIZE];
+        }
+    }
+    log_nm(NB,bc);
+}
+void neural_map::printP(){
+    LOG << "              ----  " << __func__ << " ----"  << endl;
+    unsigned int bc = (nbp + nbi + nbo + nbc);
+    float NB[(bc*NBSIZE)*(bc*NBSIZE + 1)];
+    float TMP[(SBSIZE)];
+
+    for(int i = 0; i < bc; ++i){
+        bf->opencl_getv(N.at(i)->P,&NB[i*NBSIZE],0,NBSIZE);
+        for(int j = 0; j < bc; ++j){
+            bf->opencl_getv(S.at(position(i,j))->SP,TMP,0,SBSIZE);
+            for(int x = 0; x < NBSIZE; ++x)
+                for(int y = 0; y < NBSIZE; ++y)
+                    NB[bc*NBSIZE + i*NBSIZE + (j*NBSIZE + y)*bc*NBSIZE + x] = TMP[x + y*NBSIZE];
+        }
+    }
+    log_nm(NB,bc);
+}
 
 /*
 Initialize neurons and synapses at position
@@ -604,7 +759,6 @@ void NeuronBlock::init(int p){
 
     float InitBal = (1.0f*NEURONINITBAL);
     bf->opencl_setv(BAL,&InitBal,p,p+1);
-    printN();
 
 }
 
@@ -628,14 +782,14 @@ void neural_map::stateN(size_t p)
 {
     
     NeuronBlock * MyNB = N.at(p/NBSIZE);
-    MyNB->printN(p);
+//    MyNB->printN(p);
 
 }
 
 void neural_map::stateS(position p)
 {
     SynapsBlock * MySB = S.at(position(p.first/NBSIZE,p.second/NBSIZE));
-    MySB->printS(p);
+//    MySB->printS(p);
 
 }
 

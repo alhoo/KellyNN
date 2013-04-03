@@ -78,7 +78,7 @@ class opencl_brain_functions{
         void    opencl_fill(Mat,cl_float,int);
         cl_float    opencl_sum(Mat M, long l);
 
-        void    print(Mat S, int w, int h,int l = 0, char * A = NULL);
+        string  print(Mat S, int w, int h,int l = 0, char * A = NULL);
         void    printW(Col T, Col F, Mat S, int w, Col I, char * A = NULL, bool n = 1);
         void    print(Mat S, int p);
 

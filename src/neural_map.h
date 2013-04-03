@@ -61,8 +61,6 @@ class NeuronBlock{
         NeuronBlock();
         ~NeuronBlock();
         size_t size();
-        void printN();
-        void printN(int p);
         void pay(int, float);
         void kill(int p);
         void init(int p);
@@ -73,7 +71,6 @@ class NeuronBlock{
         statetype state;
 };
 class SynapsBlock{
-    Mat SINFO,SP0,SP1,STMP,SP00,SP01,SP10,SP11,SP,SBAL,SBET0,SBET1; //float16
     NeuronBlock *To, *From;
     size_t x,y;
     statetype state;
@@ -84,17 +81,13 @@ class SynapsBlock{
         void R();
         Mat SW;
         SynapsBlock(NeuronBlock *To, NeuronBlock *From,size_t x,size_t y);
+        Mat SINFO,SP0,SP1,STMP,SP00,SP01,SP10,SP11,SP,SBAL,SBET0,SBET1; //float16
 //        SynapsBlock();
         ~SynapsBlock();
         //void R();
         void kill(long s,long l=1, long v=NBSIZE);
         void kill(position p);
         void init(position);
-        void print();
-        void printS();
-        void printS(position);
-        void printW(char *,bool n = 1);
-        void printW();
         void getBet(size_t start, size_t l, float *A);
         void setBet(size_t start, size_t l, float *A);
         seconds update();
@@ -110,7 +103,6 @@ class    Neurons{
         Neurons();
         NeuronBlock *at(size_t i);
         void addBlock();
-        void printN();
         void get(size_t start,int l,float *A);
         void set(size_t start,int l,float *A);
         void setWin(size_t start,int l);
@@ -154,6 +146,13 @@ class neural_map{
         void U(seconds t);
 //For testing the library:
         void printW();
+        void print();
+        void printP00();
+        void printP01();
+        void printP();
+        void printBet0();
+        void printBet1();
+        void printBal();
         float Bal();
 /*
 Initialize neurons and synapses at position

@@ -11,10 +11,10 @@ typedef float nanoseconds;
 
 class Brain{
     neural_map N;
-    IO io;
-    emotion e;
+    IO &io;
+    emotion &e;
     public:
-        Brain	 	(IO io, emotion e);
+        Brain	 	(IO &io, emotion &e);
         void in  	();
         void out 	();
         void update	(nanoseconds t);

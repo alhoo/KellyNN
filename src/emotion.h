@@ -7,9 +7,10 @@ using namespace std;
 class emotion{
     IO io;
     public:
+        float r;
         emotion	 	(IO &io):io(io){};
-	float R		(){};
-	void in		(){};
+        float R		(){return r;};
+        void in		(){};
         void update	(){};
         ~emotion	(){};
 };

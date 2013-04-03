@@ -1,8 +1,8 @@
 #include "robotio.h"
 
 IO::IO(){
-    I_ = new float[256];
-    O_ = new float[64];
+    I_ = new float[3];
+    O_ = new float[3];
     cout << "I = " << (void*)I_ << endl;
     cout << "O = " << (void*)O_ << endl;
 }

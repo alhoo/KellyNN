@@ -505,8 +505,8 @@ void opencl_brain_functions::printW(Col T, Col F, Mat S, int w, Col I,char * A,b
             A[i] = s.at(i);
     }
 }
-void opencl_brain_functions::print(Mat S, int w, int h,int l, char *A){
-    ostringstream oss;
+string opencl_brain_functions::print(Mat S, int w, int h,int l, char *A){
+    stringstream oss;
     streambuf * buf;
     if(A != NULL){
         buf = oss.rdbuf();
@@ -515,7 +515,7 @@ void opencl_brain_functions::print(Mat S, int w, int h,int l, char *A){
         buf = std::cout.rdbuf();
     }
     ostream os(buf);
-    os << " ";
+    os << "\n";
     if(l>0){
             long mtmp[w*h];
             opencl_getv(S,mtmp,0,w*h);
@@ -528,6 +528,7 @@ void opencl_brain_functions::print(Mat S, int w, int h,int l, char *A){
                 os << endl;
             }
     }else if(l < 0){
+        os << " ";
         cl_float mtmp[w*h];
         opencl_getv(S,mtmp,0,w*h);
         for(int i = 0; i < h; ++i){
@@ -550,16 +551,22 @@ void opencl_brain_functions::print(Mat S, int w, int h,int l, char *A){
     }else{
         cl_float mtmp[w*h];
         opencl_getv(S,mtmp,0,w*h);
-        os << setprecision(2);
         for(int i = 0; i < h; ++i){
-            os << "\t\t\t";
-            os << setprecision(2) << mtmp[i*w];
+//            os << "\t\t\t";
+//            os << setprecision(2) << mtmp[i*w];
+            os << std::fixed << setprecision(3) << setw(6) << mtmp[i*w];
             for(int j = 1; j < w; ++j){
-                os << "\t" << mtmp[i*w + j];
+//                os << "\t" << mtmp[i*w + j];
+                os << std::fixed << setprecision(3) << setw(6) << mtmp[i*w];
             }
             os << endl;
         }
     }
+    if(A != NULL){
+        return oss.str();
+     //   oss.read(A,oss.str().length());
+    }
+    return "";
 }
 /*
 void opencl_brain_functions::print(Mat S, int w, int h,int l){

@@ -10,8 +10,8 @@ class IO{
         IO	 	();
         ~IO	 	();
         void update	(){};
-        size_t ni	(){return 8;};
-        size_t no	(){return 6;};
+        size_t ni	(){return 3;};
+        size_t no	(){return 3;};
         float *I	(){
 //    cout << "I = " << (void*)I_ << endl;
             return I_;

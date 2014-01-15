@@ -404,7 +404,7 @@ void opencl_brain_functions::init_kernel(string filename){
 
 //    kernels[i] = clCreateKernel( clPgrm, kernelname.c_str(), &err);
     kernels[filename.substr(4,filename.length() - 7)] = clCreateKernel( clPgrm, kernelname.c_str(), &err);
-    cout << "creating '" << filename.substr(4,filename.length() - 7) << "' kernel;" << endl;
+    //cout << "creating '" << filename.substr(4,filename.length() - 7) << "' kernel;" << endl;
 
     print_opencl_error(err);
 

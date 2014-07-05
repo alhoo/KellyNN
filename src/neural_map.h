@@ -87,7 +87,7 @@ class SynapsBlock{
         //void R();
         void kill(long s,long l=1, long v=NBSIZE);
         void kill(position p);
-        void init(position);
+        void init(position p);
         void getBet(size_t start, size_t l, float *A);
         void setBet(size_t start, size_t l, float *A);
         seconds update();

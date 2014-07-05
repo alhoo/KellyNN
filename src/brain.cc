@@ -1,7 +1,7 @@
 #include "brain.h"
 
 
-Brain::Brain	 	(IO &io, emotion &e):io(io),e(e),N(1,io.ni(),io.no())
+Brain::Brain	 	(IO &io, emotion &e):io(io),e(e),N(io.np(),io.ni(),io.no(),io.nc())
 {
 
 }

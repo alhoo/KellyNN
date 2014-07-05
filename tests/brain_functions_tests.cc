@@ -24,6 +24,7 @@ class OBFT : public ::testing::Test {
             FN5 = bf->gpu_malloc(FN5,NBSIZE,0);
             FN6 = bf->gpu_malloc(FN6,NBSIZE,0);
             FNP = bf->gpu_malloc(FNP,NBSIZE,0);
+
             TNBET0 = bf->gpu_malloc(TNBET0,NBSIZE,0);
             TNBET1 = bf->gpu_malloc(TNBET1,NBSIZE,0);
             TNBAL = bf->gpu_malloc(TNBAL,NBSIZE,0);
@@ -31,6 +32,7 @@ class OBFT : public ::testing::Test {
             TN5 = bf->gpu_malloc(TN5,NBSIZE,0);
             TN6 = bf->gpu_malloc(TN6,NBSIZE,0);
             TNP = bf->gpu_malloc(TNP,NBSIZE,0);
+
             SBET0 = bf->gpu_malloc(SBET0,SBSIZE,0);
             SBET1 = bf->gpu_malloc(SBET1,SBSIZE,0);
             STMP = bf->gpu_malloc(STMP,SBSIZE,0);
@@ -163,6 +165,9 @@ TEST_F(OBFT, opencl_pay_conservation_of_value) {
   /** INIT **/
     for(int i = 0; i < NBSIZE; ++i) a[i] = 1000.0;
     bf->opencl_setv(FNBAL,a,0,NBSIZE);
+    
+    for(int i = 0; i < NBSIZE; ++i) a[i] = 1000.0;
+    bf->opencl_setv(TNBAL,a,0,NBSIZE);
 
     for(int i = 0; i < SBSIZE; ++i) b[i] = 0;
     for(int i = 0; i < SBSIZE; ++i) b[i] = 1000.0;
@@ -197,7 +202,10 @@ TEST_F(OBFT, opencl_pay_conservation_of_value) {
     bf->opencl_bet_sum(TNBET1,SBET1);
     bf->opencl_bet_sum(TNBET0,SBET0);
 
-    float initbal = bf->opencl_get_bal(FNBAL,SBAL,FNBET0,FNBET1);
+    for(int i = 0; i < SBSIZE; ++i) b[i] = 0;
+    bf->opencl_setv(STMP,b,0,SBSIZE);
+    float initbal = bf->opencl_get_bal(FNBAL,SBAL,FNBET0,FNBET1)
+                + bf->opencl_get_bal(TNBAL,STMP,TNBET0,TNBET1);
 
     bf->opencl_neuron_refresh(TNBET1,TNBET0,TNP);
 
@@ -223,12 +231,15 @@ TEST_F(OBFT, opencl_pay_conservation_of_value) {
     bf->opencl_getv(SBAL,b,0,SBSIZE);
     bf->opencl_getv(FNBAL,a,0,NBSIZE);
     
-    float currentbal = bf->opencl_get_bal(FNBAL,SBAL,FNBET0,FNBET1);
+//    float currentbal = bf->opencl_get_bal(FNBAL,TNBAL,SBAL,FNBET0,FNBET1,TNBET0,TNBET1);
+    for(int i = 0; i < SBSIZE; ++i) b[i] = 0;
+    bf->opencl_setv(STMP,b,0,SBSIZE);
+    float currentbal = bf->opencl_get_bal(FNBAL,SBAL,FNBET0,FNBET1)
+                + bf->opencl_get_bal(TNBAL,STMP,TNBET0,TNBET1);
 
 //    EXPECT_FLOAT_EQ(initbal + 1000.0, currentbal);
     ASSERT_NEAR(initbal + 1000.0, currentbal, 1.0);
 }
-/*
 TEST_F(OBFT, setv_getv_test) {
     for(int i = 0; i < NBSIZE; ++i) a[i] = 0.45*i;
     EXPECT_FLOAT_EQ(a[NBSIZE/2], 0.45*(NBSIZE/2));
@@ -254,7 +265,7 @@ TEST_F(OBFT, opencl_bet_sum) {
 }
 TEST_F(OBFT, opencl_set) {
     int      i = 0;
-    cl_float v = 5;
+    cl_float v = 5.0f;
     bf->opencl_set(FNBET0,i,v);
 }
 TEST_F(OBFT, opencl_synaps_refresh) {
@@ -267,22 +278,26 @@ TEST_F(OBFT, opencl_find_winning_synapses) {
     bf->opencl_find_winning_synapses(SBET0,SBET1,FNBET0,FNBET1,FNBAL,SBET0);
 }
 TEST_F(OBFT, opencl_find_winning_neurons) {
-    bf->opencl_find_winning_neurons(FNBET0,SBET0);
+    bf->opencl_find_winning_neurons(TNW,SW,SBET0,SBET1);
 }
 TEST_F(OBFT, opencl_update_synaps_info) {
     bf->opencl_update_synaps_info(FNBET0);
 }
+/*
 TEST_F(OBFT, opencl_synaps_learn) {
     bf->opencl_synaps_learn(SBET0,SBET1,STMP,SBAL,FNBET0,FNBET1,FNBAL);
 }
+*/
 TEST_F(OBFT, opencl_synaps_learn2) {
     bf->opencl_synaps_learn2(SBET0,SBET1,FNBET0);
 }
+/*
 TEST_F(OBFT, opencl_pay_neuron) {
     int     i = 0;
     float   f = 10.0;
     bf->opencl_pay_neuron(FNBET0,FNBET1,SBET0,i,f);
 }
+*/
 TEST_F(OBFT, opencl_synaps_die) {
     long    s = 0;
     long    v = 0;
@@ -301,6 +316,7 @@ void        printv(float *a , int c){
     for(int i = 1; i < c; ++i) cout << ", " << a[i];
     cout << endl;
 }
+/*
 TEST_F(OBFT, opencl_test_xor) {
     srand ( time(FNULL) );
 
@@ -313,7 +329,10 @@ TEST_F(OBFT, opencl_test_xor) {
     for(int i = 0; i < SBSIZE; ++i) b[i] = 1000.0;
     bf->opencl_setv(SBAL,a,0,SBSIZE);
 
-    float initbal = bf->opencl_get_bal(FNBAL,SBAL,FNBET0,FNBET1);
+    for(int i = 0; i < SBSIZE; ++i) b[i] = 0;
+    bf->opencl_setv(STMP,b,0,SBSIZE);
+    float initbal = bf->opencl_get_bal(FNBAL,SBAL,FNBET0,FNBET1)
+                 +  bf->opencl_get_bal(TNBAL,STMP,TNBET0,TNBET1);
 
     for(int n = 0; n < 1000; ++n){
         float v = (rand() % 8 + 1)*0.1;
@@ -421,7 +440,10 @@ TEST_F(OBFT, opencl_test_xor) {
         vprev = v;
     }
 
-    float currentbal = bf->opencl_get_bal(FNBAL,SBAL,FNBET0,FNBET1);
+    for(int i = 0; i < SBSIZE; ++i) b[i] = 0;
+    bf->opencl_setv(STMP,b,0,SBSIZE);
+    float currentbal = bf->opencl_get_bal(FNBAL,SBAL,FNBET0,FNBET1)
+                    +  bf->opencl_get_bal(TNBAL,STMP,TNBET0,TNBET1);
     EXPECT_GT(nw,7);
 }
 */

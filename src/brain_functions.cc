@@ -58,11 +58,22 @@ void opencl_brain_functions::wait(){
     assert(err == CL_SUCCESS);
 }
 
-float   opencl_brain_functions::opencl_get_bal(Col N,Mat S,Col NB1, Col NB0){
+float   opencl_brain_functions::opencl_get_bal(Col N,Mat S, Col TNB1, Col TNB0){
    
-    float ret = opencl_sum(N  , w);
-    ret      += opencl_sum(NB0, w);
-    ret      += opencl_sum(NB1, w);
+    float ret = opencl_sum( N  , w);
+    ret      += opencl_sum(TNB0, w);
+    ret      += opencl_sum(TNB1, w);
+    ret      += opencl_sum(S  , w*w);
+    return ret;
+}
+float   opencl_brain_functions::opencl_get_bal_bad(Col TN,Col FN,Mat S,Col FNB1, Col FNB0, Col TNB1, Col TNB0){
+   
+    float ret = opencl_sum(FN  , w);
+    ret      += opencl_sum(TN  , w);
+    ret      += opencl_sum(FNB0, w);
+    ret      += opencl_sum(FNB1, w);
+    ret      += opencl_sum(TNB0, w);
+    ret      += opencl_sum(TNB1, w);
     ret      += opencl_sum(S  , w*w);
     return ret;
 }
@@ -236,9 +247,11 @@ void opencl_brain_functions::opencl_find_winning_neurons(Col NW,Mat SW,Mat SBET0
     wait();
 }
 void opencl_brain_functions::opencl_set(Col NW,int n,cl_float v){
-    err = clEnqueueWriteBuffer(queue, NW, CL_TRUE, 0,
-        (n)* sizeof(v), &v, 0, NULL, &event);
-    assert(err == CL_SUCCESS);
+    err = clEnqueueWriteBuffer(queue, NW, CL_TRUE, 0, (n)* sizeof(v), &v, 0, NULL, &event);
+    if(err != CL_SUCCESS){
+      print_opencl_error(err);
+    }
+    //assert(err == CL_SUCCESS);
 }
 void opencl_brain_functions::opencl_find_winning_synapses(Mat SBET0,Mat SBET1,Col NBET0,Col NBET1,Col NW,Mat SW)
 {

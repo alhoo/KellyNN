@@ -32,6 +32,7 @@ class OBFT : public ::testing::Test {
             TN5 = bf->gpu_malloc(TN5,NBSIZE,0);
             TN6 = bf->gpu_malloc(TN6,NBSIZE,0);
             TNP = bf->gpu_malloc(TNP,NBSIZE,0);
+            NTMP = bf->gpu_malloc(STMP,NBSIZE,0);
 
             SBET0 = bf->gpu_malloc(SBET0,SBSIZE,0);
             SBET1 = bf->gpu_malloc(SBET1,SBSIZE,0);
@@ -67,6 +68,7 @@ class OBFT : public ::testing::Test {
             bf->gpu_free(FN5);
             bf->gpu_free(FN6);
             bf->gpu_free(FNP);
+            bf->gpu_free(NTMP);
             bf->gpu_free(SBET0);
             bf->gpu_free(SBET1);
             bf->gpu_free(STMP);
@@ -107,6 +109,7 @@ class OBFT : public ::testing::Test {
         Col FNBET0, FNBET1, FNBAL;
         Col FNW, FN5, FN6;
         Col FNP;
+        Col NTMP;
         Mat SBET0, SBET1, STMP;
         Mat SBAL, SW, S6;
         Mat SP0;
@@ -121,44 +124,47 @@ class OBFT : public ::testing::Test {
 };
 
 TEST_F(OBFT, opencl_pay_0) {
-    bf->opencl_setv(FNBET0,a,0,NBSIZE);
-    bf->opencl_setv(FNBET1,a,0,NBSIZE);
-    bf->opencl_setv(FNBAL,a,0,NBSIZE);
-    bf->opencl_setv(FNW,a,0,NBSIZE);
+    bf->opencl_setv(TNBET0,a,0,NBSIZE);
+    bf->opencl_setv(TNBET1,a,0,NBSIZE);
+    bf->opencl_setv(TNBAL,a,0,NBSIZE);
+    bf->opencl_setv(TNW,a,0,NBSIZE);
     bf->opencl_setv(SBET0,b,0,SBSIZE);
     bf->opencl_setv(SBET1,b,0,SBSIZE);
     bf->opencl_setv(STMP,b,0,SBSIZE);
     bf->opencl_setv(SBAL,b,0,SBSIZE);
     bf->opencl_setv(SW,b,0,SBSIZE);
-    bf->opencl_pay(SBET0,SBET1,FNBET0,FNBET1,SBAL,FNBAL,SW,FNW);
+    bf->opencl_npay(TNBET0,TNBET1,TNBAL,TNW,NTMP);
+    bf->opencl_pay(SBET0,SBET1,TNBET0,TNBET1,NTMP,SBAL,TNBAL,SW,TNW);
 }
 TEST_F(OBFT, opencl_pay_1) {
     for(int i = 0; i < NBSIZE; ++i) a[i] = 1;
     for(int i = 0; i < SBSIZE; ++i) b[i] = 1;
-    bf->opencl_setv(FNBET0,a,0,NBSIZE);
-    bf->opencl_setv(FNBET1,a,0,NBSIZE);
-    bf->opencl_setv(FNBAL,a,0,NBSIZE);
-    bf->opencl_setv(FNW,a,0,NBSIZE);
+    bf->opencl_setv(TNBET0,a,0,NBSIZE);
+    bf->opencl_setv(TNBET1,a,0,NBSIZE);
+    bf->opencl_setv(TNBAL,a,0,NBSIZE);
+    bf->opencl_setv(TNW,a,0,NBSIZE);
     bf->opencl_setv(SBET0,b,0,SBSIZE);
     bf->opencl_setv(SBET1,b,0,SBSIZE);
     bf->opencl_setv(STMP,b,0,SBSIZE);
     bf->opencl_setv(SBAL,b,0,SBSIZE);
     bf->opencl_setv(SW,b,0,SBSIZE);
-    bf->opencl_pay(SBET0,SBET1,FNBET0,FNBET1,SBAL,FNBAL,SW,FNW);
+    bf->opencl_npay(TNBET0,TNBET1,TNBAL,TNW,NTMP);
+    bf->opencl_pay(SBET0,SBET1,TNBET0,TNBET1,NTMP,SBAL,TNBAL,SW,TNW);
 }
 TEST_F(OBFT, opencl_pay_large) {
     for(int i = 0; i < NBSIZE; ++i) a[i] = 10e10;
     for(int i = 0; i < SBSIZE; ++i) b[i] = 10e10;
-    bf->opencl_setv(FNBET0,a,0,NBSIZE);
-    bf->opencl_setv(FNBET1,a,0,NBSIZE);
-    bf->opencl_setv(FNBAL,a,0,NBSIZE);
-    bf->opencl_setv(FNW,a,0,NBSIZE);
+    bf->opencl_setv(TNBET0,a,0,NBSIZE);
+    bf->opencl_setv(TNBET1,a,0,NBSIZE);
+    bf->opencl_setv(TNBAL,a,0,NBSIZE);
+    bf->opencl_setv(TNW,a,0,NBSIZE);
     bf->opencl_setv(SBET0,b,0,SBSIZE);
     bf->opencl_setv(SBET1,b,0,SBSIZE);
     bf->opencl_setv(STMP,b,0,SBSIZE);
     bf->opencl_setv(SBAL,b,0,SBSIZE);
     bf->opencl_setv(SW,b,0,SBSIZE);
-    bf->opencl_pay(SBET0,SBET1,FNBET0,FNBET1,SBAL,FNBAL,SW,FNW);
+    bf->opencl_npay(TNBET0,TNBET1,TNBAL,TNW,NTMP);
+    bf->opencl_pay(SBET0,SBET1,TNBET0,TNBET1,NTMP,SBAL,TNBAL,SW,TNW);
 }
 
 TEST_F(OBFT, opencl_pay_conservation_of_value) {
@@ -220,13 +226,14 @@ TEST_F(OBFT, opencl_pay_conservation_of_value) {
         bf->opencl_find_winning_neurons(TNW,SW,SBET0,SBET1);
         bf->wait();
     }
-    bf->opencl_synaps_learn(SP00,SP01,SP10,SP11,SBET1,SBET0,SW,FNBET0,FNBET1,SINFO);
+    bf->opencl_synaps_learn(SP00,SP01,SP10,SP11,SBET1,SBET0,SW,FNP,SINFO);
 
     bf->opencl_synaps_learn2(SP,SW,SINFO);
 
     bf->opencl_update_synaps_info(SINFO);
  
-    bf->opencl_pay(SBET0,SBET1,TNBET0,TNBET1,SBAL,TNBAL,SW,TNW);
+    bf->opencl_npay(TNBET0,TNBET1,TNBAL,TNW,NTMP);
+    bf->opencl_pay(SBET0,SBET1,TNBET0,TNBET1,NTMP,SBAL,TNBAL,SW,TNW);
     
     bf->opencl_getv(SBAL,b,0,SBSIZE);
     bf->opencl_getv(FNBAL,a,0,NBSIZE);

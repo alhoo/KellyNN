@@ -6,15 +6,15 @@ __global float *SP11,
 __global const float *SBET0,
 __global const float *SBET1,
 __global const float *SW,
-__global const float *NBET0,
-__global const float *NBET1,
+__global const float *NP,
 __global const float *n,
 __global const long *w
 ){
     int i   = get_global_id(0);
     if(i < w[1]){
-        if(NBET0[i%w[0]] > NBET1[i%w[0]]){
-            if(SW[i]*sign(SBET0[i] - SBET1[i])*sign(NBET0[i%w[0]] - NBET1[i%w[0]]) > 0){
+//        if(NBET0[i%w[0]] > NBET1[i%w[0]]){
+        if(NP[i%w[0]] < 0.5){
+            if(SW[i]*sign(SBET0[i] - SBET1[i]) > 0){
                 SP00[i] = (n[0]*SP00[i] + 1)/(n[0] + 1);
                 SP10[i] = (n[0]*SP10[i])/(n[0] + 1);
             }
@@ -25,7 +25,7 @@ __global const long *w
             }
         }
         else{
-            if(SW[i]*sign(SBET1[i] - SBET0[i])*sign(NBET1[i%w[0]] - NBET0[i%w[0]]) > 0){
+            if(SW[i]*sign(SBET1[i] - SBET0[i]) < 0){
                 SP01[i] = (n[0]*SP00[i] + 1)/(n[0] + 1);
                 SP11[i] = (n[0]*SP10[i])/(n[0] + 1);
             }

@@ -270,7 +270,7 @@ void opencl_brain_functions::opencl_find_winning_synapses(Mat SBET0,Mat SBET1,Co
     assert(err == CL_SUCCESS);
     wait();
 }
-void opencl_brain_functions::opencl_synaps_learn(Mat SP00,Mat SP01,Mat SP10,Mat SP11,Mat SBET0,Mat SBET1,Mat SW,Col NBET0,Col NBET1,Col SINFO)
+void opencl_brain_functions::opencl_synaps_learn(Mat SP00,Mat SP01,Mat SP10,Mat SP11,Mat SBET0,Mat SBET1,Mat SW,Col NP,Col SINFO)
 {
     if(VERBOSE>1) cout << "kernel[" << __func__ << "]" << endl;
     clSetKernelArg(kernels.at(__func__), 0, sizeof(cl_mem), (void *)&SP00);
@@ -280,10 +280,9 @@ void opencl_brain_functions::opencl_synaps_learn(Mat SP00,Mat SP01,Mat SP10,Mat 
     clSetKernelArg(kernels.at(__func__), 4, sizeof(cl_mem), (void *)&SBET0);
     clSetKernelArg(kernels.at(__func__), 5, sizeof(cl_mem), (void *)&SBET1);
     clSetKernelArg(kernels.at(__func__), 6, sizeof(cl_mem), (void *)&SW);
-    clSetKernelArg(kernels.at(__func__), 7, sizeof(cl_mem), (void *)&NBET0);
-    clSetKernelArg(kernels.at(__func__), 8, sizeof(cl_mem), (void *)&NBET1);
-    clSetKernelArg(kernels.at(__func__), 9, sizeof(cl_mem), (void *)&SINFO);
-    clSetKernelArg(kernels.at(__func__), 10, sizeof(cl_mem), (void *)&world);
+    clSetKernelArg(kernels.at(__func__), 7, sizeof(cl_mem), (void *)&NP);
+    clSetKernelArg(kernels.at(__func__), 8, sizeof(cl_mem), (void *)&SINFO);
+    clSetKernelArg(kernels.at(__func__), 9, sizeof(cl_mem), (void *)&world);
     size_t global_item_size = w*w;
     size_t local_item_size = 1;
     err = clEnqueueNDRangeKernel(queue, kernels.at(__func__), 1, NULL, &global_item_size,
@@ -318,18 +317,48 @@ void opencl_brain_functions::opencl_synaps_learn2(Mat SP,Mat SW,Col SINFO)
     assert(err == CL_SUCCESS);
     wait();
 }
-void opencl_brain_functions::opencl_pay(Mat SBET0,Mat SBET1,Col NBET0,Col NBET1,Mat SBAL,Col NBAL,Mat SW,Col NW)
+void opencl_brain_functions::opencl_npay(Col NBET0,Col NBET1,Col NBAL,Col NW,Col NBETSUM)
+{
+    if(VERBOSE>1) cout << "kernel[" << __func__ << "]" << endl;
+    clSetKernelArg(kernels.at(__func__), 0, sizeof(cl_mem), (void *)&NBET0);
+    clSetKernelArg(kernels.at(__func__), 1, sizeof(cl_mem), (void *)&NBET1);
+    clSetKernelArg(kernels.at(__func__), 2, sizeof(cl_mem), (void *)&NBAL);
+    clSetKernelArg(kernels.at(__func__), 3, sizeof(cl_mem), (void *)&NW);
+    clSetKernelArg(kernels.at(__func__), 4, sizeof(cl_mem), (void *)&NBETSUM);
+    clSetKernelArg(kernels.at(__func__), 5, sizeof(cl_mem), (void *)&world);
+/*
+    clSetKernelArg(kernels.at(__func__), 0, sizeof(cl_mem), (void *)&SBET0);
+    clSetKernelArg(kernels.at(__func__), 1, sizeof(cl_mem), (void *)&SBET1);
+    clSetKernelArg(kernels.at(__func__), 2, sizeof(cl_mem), (void *)&NWIN);
+    clSetKernelArg(kernels.at(__func__), 3, sizeof(cl_mem), (void *)&NBET0);
+    clSetKernelArg(kernels.at(__func__), 4, sizeof(cl_mem), (void *)&NBET1);
+    clSetKernelArg(kernels.at(__func__), 5, sizeof(cl_mem), (void *)&SBAL);
+    clSetKernelArg(kernels.at(__func__), 6, sizeof(cl_mem), (void *)&NBAL);
+    clSetKernelArg(kernels.at(__func__), 7, sizeof(cl_mem), (void *)&SW);
+    clSetKernelArg(kernels.at(__func__), 8, sizeof(cl_mem), (void *)&NW);
+    clSetKernelArg(kernels.at(__func__), 9, sizeof(cl_mem), (void *)&world);
+*/
+    size_t global_item_size = w;
+    size_t local_item_size = 1;
+    err = clEnqueueNDRangeKernel(queue, kernels.at(__func__), 1, NULL, &global_item_size,
+            &local_item_size, 0, NULL, &event);
+    print_opencl_error(err);
+    assert(err == CL_SUCCESS);
+    wait();
+}
+void opencl_brain_functions::opencl_pay(Mat SBET0,Mat SBET1,Col NBET0,Col NBET1,Col NBETSUM,Mat SBAL,Col NBAL,Mat SW,Col NW)
 {
     if(VERBOSE>1) cout << "kernel[" << __func__ << "]" << endl;
     clSetKernelArg(kernels.at(__func__), 0, sizeof(cl_mem), (void *)&SBET0);
     clSetKernelArg(kernels.at(__func__), 1, sizeof(cl_mem), (void *)&SBET1);
     clSetKernelArg(kernels.at(__func__), 2, sizeof(cl_mem), (void *)&NBET0);
     clSetKernelArg(kernels.at(__func__), 3, sizeof(cl_mem), (void *)&NBET1);
-    clSetKernelArg(kernels.at(__func__), 4, sizeof(cl_mem), (void *)&SBAL);
-    clSetKernelArg(kernels.at(__func__), 5, sizeof(cl_mem), (void *)&NBAL);
-    clSetKernelArg(kernels.at(__func__), 6, sizeof(cl_mem), (void *)&SW);
-    clSetKernelArg(kernels.at(__func__), 7, sizeof(cl_mem), (void *)&NW);
-    clSetKernelArg(kernels.at(__func__), 8, sizeof(cl_mem), (void *)&world);
+    clSetKernelArg(kernels.at(__func__), 4, sizeof(cl_mem), (void *)&NBETSUM);
+    clSetKernelArg(kernels.at(__func__), 5, sizeof(cl_mem), (void *)&SBAL);
+    clSetKernelArg(kernels.at(__func__), 6, sizeof(cl_mem), (void *)&NBAL);
+    clSetKernelArg(kernels.at(__func__), 7, sizeof(cl_mem), (void *)&SW);
+    clSetKernelArg(kernels.at(__func__), 8, sizeof(cl_mem), (void *)&NW);
+    clSetKernelArg(kernels.at(__func__), 9, sizeof(cl_mem), (void *)&world);
 /*
     clSetKernelArg(kernels.at(__func__), 0, sizeof(cl_mem), (void *)&SBET0);
     clSetKernelArg(kernels.at(__func__), 1, sizeof(cl_mem), (void *)&SBET1);
@@ -411,6 +440,9 @@ void opencl_brain_functions::init_kernel(string filename){
     print_opencl_error(err);
 
     err = clBuildProgram( clPgrm, 1, &device, NULL, NULL, NULL );
+    if(err != CL_SUCCESS){
+        cerr << "\t\t\tFailed to load kernel " << filename << "." << endl;
+    }
     assert(err == CL_SUCCESS);
 
     print_opencl_error(err);

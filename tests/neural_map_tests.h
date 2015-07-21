@@ -3,8 +3,9 @@
 #include <iostream>
 #include <limits>
 #include <cmath>
+#include <ctime>
 #include "gtest/gtest.h"
-#include "src/neural_map.h"
+#include "../src/neural_map.h"
 
 
 #endif

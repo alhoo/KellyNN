@@ -68,10 +68,11 @@ class opencl_brain_functions{
         void    opencl_find_winning_synapses(Mat,Mat,Col,Col,Col,Mat);
         void    opencl_find_winning_neurons(Col,Mat,Mat,Mat);
         void    opencl_update_synaps_info(Col);
-        void    opencl_synaps_learn(Mat,Mat,Mat,Mat,Mat,Mat,Mat,Col,Col,Col);
+        void    opencl_synaps_learn(Mat,Mat,Mat,Mat,Mat,Mat,Mat,Col,Col);
         void    opencl_synaps_learn_negation(Mat SP1, Mat SP0);
         void    opencl_synaps_learn2(Mat,Mat,Col);
-        void    opencl_pay(Mat,Mat,Col,Col,Mat,Col,Mat,Col);
+        void    opencl_pay(Mat,Mat,Col,Col,Col,Mat,Col,Mat,Col);
+        void    opencl_npay(Col NBET0,Col NBET1,Col NBAL,Col NW,Col NBETSUM);
         float   opencl_get_bal(Col,Mat,Col,Col);
         float   opencl_get_bal_bad(Col,Col,Mat,Col,Col,Col,Col);
         void    opencl_pay_neuron(Col,Col,int,float);

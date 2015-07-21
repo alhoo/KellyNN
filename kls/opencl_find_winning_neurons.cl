@@ -12,7 +12,6 @@ __kernel void find_winning_neurons(
         NW[i] = SW[i]*fabs(SBET1[i] - SBET0[i]) - 0.1;
         for(int j = 1; j < w[0]; ++j){
             NW[i] = NW[i] + SW[i + j*w[0]]*fabs(SBET1[i + j*w[0]] - SBET0[i + j*w[0]]);
-//                NW[i] = NW[i] + SW[i + j*w[0]];
         }
         NW[i] = sign(NW[i]);
     }

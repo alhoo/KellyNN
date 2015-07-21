@@ -1,4 +1,5 @@
 #include <iostream>
+#include <cmath>
 #include "brain.h"
 #include "emotion.h"
 #include "robotio.h"
@@ -30,7 +31,7 @@ int main(){
 		b.update(0.03);
 		//b.update(40000000.0);
 		b.out();
-        em.r = 10*(abs(I[0]-O[0]) + ((I[1]-0.2) - O[1])) + 2;
+        em.r = 10*(abs((float) (I[0]-O[0])) + ((I[1]-0.2) - O[1])) + 2;
         if(alive > 100) break;
 	}
 	return 0;

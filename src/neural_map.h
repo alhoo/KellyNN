@@ -56,6 +56,7 @@ typedef unsigned int uint;
 typedef cl_mem Mat;
 typedef cl_mem Col;
 
+
 class NeuronBlock{
     public:
         NeuronBlock();
@@ -67,10 +68,14 @@ class NeuronBlock{
         float setState(statetype s);
         Col  P,PI,TMP,BAL,BET0,BET1,W,L; //float8
         float Bal();
+        void getP(float *);
+        void R();
+        void zero_nbets();
     private:
         statetype state;
 };
 class SynapsBlock{
+    public: //FIXME test without making this public
     NeuronBlock *To, *From;
     size_t x,y;
     statetype state;
@@ -85,6 +90,8 @@ class SynapsBlock{
 //        SynapsBlock();
         ~SynapsBlock();
         //void R();
+        NeuronBlock *getTo(){ return To; }
+        NeuronBlock *getFrom(){ return From; }
         void kill(long s,long l=1, long v=NBSIZE);
         void kill(position p);
         void init(position p);
@@ -98,6 +105,7 @@ class SynapsBlock{
 
 typedef map<size_t,NeuronBlock *> nmap;
 class    Neurons{
+    public: //FIXME test without making this public
     nmap N;
     public:
         Neurons();
@@ -111,6 +119,7 @@ class    Neurons{
 
 typedef map<position, SynapsBlock *> smap;
 class    Synapses{
+    public: //FIXME test without making this public
     smap SB;
     Neurons  *N;
     int state;
@@ -120,6 +129,7 @@ class    Synapses{
         void addBlock(SynapsBlock *S,position p);
         void getBet(size_t start, size_t l, float *A);
         void setBet(size_t start, size_t l, float *A);
+        bool has(position p);
         void update();
         position maxbid();
         float Bal();
@@ -127,10 +137,12 @@ class    Synapses{
 
 
 class neural_map{
+    public: //FIXME test without making this public
     size_t np, ni, no, nc;
     size_t nbp, nbi, nbo, nbc;
     Neurons  N;
     Synapses S;
+    void payNB(int, float);
     void get_neural_states(size_t,size_t,float *);
     void set_neural_states(size_t,size_t,float *);
     void set_neural_win(size_t,size_t);
@@ -140,11 +152,19 @@ class neural_map{
     public:
         neural_map(size_t np, size_t ni, size_t no, size_t nc = 1);
         ~neural_map();
+        size_t get_block_count(char blocktype);
         void R(float a);
         void I(float * I);
         void O(float * O);
         void U(seconds t);
 //For testing the library:
+        void print_map();
+        void BetSum(Col N, Mat S);
+        string write_map();
+        vector<float> readSBlock(Mat);
+        void writeSBlock(Mat, vector<float>);
+        vector<float> readNBlock(Col);
+        void writeNBlock(Col, vector<float>);
         void printW();
         void print();
         void printP00();
@@ -153,6 +173,8 @@ class neural_map{
         void printBet0();
         void printBet1();
         void printBal();
+        float getNP(size_t p);
+        float getSP(position p);
         float Bal();
 /*
 Initialize neurons and synapses at position

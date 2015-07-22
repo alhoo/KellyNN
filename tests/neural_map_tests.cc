@@ -453,8 +453,7 @@ class NMT : public ::testing::Test {
         nm.I(I);
         nm.U(-1);
         nm.O(O);
-        float pay = ((i%2)*300-250);
-        if(pay > 0)
+        if(i%2 > 0)
             ASSERT_GT(nm.getNP(0), 0.5);
         else
             ASSERT_LT(nm.getNP(0), 0.5);

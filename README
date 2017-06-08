@@ -1,0 +1,1 @@
+This is a probabilistic neural network that uses internal currency and kelly bet to find the optimal way of betting to get the best outcome. The currency is used to keep the network small and kelly betting scheme is used to make sure that the framework works optimally.

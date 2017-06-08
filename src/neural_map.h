@@ -4,7 +4,7 @@
 #include <map>
 #include <vector>
 #include <fstream>
-#include <CL/cl.h>
+#include <CL/opencl.h>
 #include "brain_functions.h"
 #include "timer.hh"
 

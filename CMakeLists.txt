@@ -10,7 +10,12 @@ file ( GLOB CODE ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cc)
 include(FindOpenCL)
 Find_Package ( OpenCL REQUIRED )
 link_libraries(${OPENCL_LIBRARIES})
-include_directories(${OPENCL_INCLUDE_DIR})
+include_directories(${OPENCL_INCLUDE_DIRS})
+MESSAGE(STATUS "Opencl: " ${OPENCL_FOUND})
+MESSAGE(STATUS "Opencl lib: " ${OPENCL_LIBRARIES})
+MESSAGE(STATUS "Opencl inc: " ${OPENCL_INCLUDE_DIRS})
+MESSAGE(STATUS "Opencl version: " ${OPENCL_VERSION_STRING})
+
 # Create the library
 add_library ( brain STATIC ${CODE})
 #target_compile_features(brain PRIVATE cxx_auto_type)
@@ -23,7 +28,7 @@ endif()
 ExternalProject_Add(
   gtest-1.7.0
   PREFIX ${CMAKE_BINARY_DIR}/vendor/gtest
-  URL http://localhost/files/gtest-1.7.0.zip
+  URL https://github.com/google/googletest/archive/release-1.7.0.zip
   #URL https://googletest.googlecode.com/files/gtest-1.7.0.zip
   CMAKE_ARGS -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
              -DCMAKE_ARCHIVE_OUTPUT_DIRECTORY_DEBUG:PATH=DebugLibs

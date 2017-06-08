@@ -1,6 +1,0 @@
-[submodule "robotio"]
-	path = robotio
-	url = /home/git/Projects/robotio.git
-[submodule "emotions"]
-	path = emotions
-	url = /home/git/Projects/emotions.git
